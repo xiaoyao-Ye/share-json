@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  client:
+    build:
+      context: ./client
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    networks:
+      - share-network
+    restart: unless-stopped
+
+  server:
+    build:
+      context: ./server
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USERNAME=root
+      - DB_PASSWORD=password
+      - DB_DATABASE=json_share
+    volumes:
+      - ./server/uploads:/app/uploads
+    networks:
+      - share-network
+    restart: unless-stopped
+  
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=json_share
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - share-network
+    restart: unless-stopped
+
+networks:
+  share-network:
+    driver: bridge
+
+volumes:
+  mysql-data: 
