@@ -1,6 +1,5 @@
 <template>
-  <main font-sans p="x-4 y-10" text="center gray-700 dark:gray-200">
+  <main class="min-h-screen font-sans bg-background text-foreground">
     <RouterView />
-    <TheFooter />
   </main>
 </template>

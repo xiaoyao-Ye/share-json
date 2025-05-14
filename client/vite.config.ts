@@ -3,7 +3,6 @@
 import path from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import Vue from '@vitejs/plugin-vue'
-import UnoCSS from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import VueMacros from 'unplugin-vue-macros/vite'
@@ -56,10 +55,6 @@ export default defineConfig({
     Components({
       dts: true,
     }),
-
-    // https://github.com/antfu/unocss
-    // see uno.config.ts for config
-    UnoCSS(),
 
     tailwindcss(),
   ],
