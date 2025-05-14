@@ -1,8 +1,8 @@
 import { Repository } from 'typeorm';
 import { Share, ExpiryType } from '../entities/Share';
 import { AppDataSource } from '../config/database';
-import * as fs from 'fs';
-import * as path from 'path';
+import fs from 'fs';
+import path from 'path';
 
 export class ShareService {
   private shareRepository: Repository<Share>;

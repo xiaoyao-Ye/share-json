@@ -1,0 +1,27 @@
+{
+  "name": "share",
+  "version": "1.0.0",
+  "description": "share json",
+  "private": true,
+  "scripts": {
+    "client:dev": "pnpm -F client dev",
+    "client:build": "pnpm -F client build",
+    "server:dev": "pnpm -F server dev",
+    "server:build": "pnpm -F server build",
+    "server:start": "pnpm -F server start:prod",
+    "mysql:start": "docker-compose up -d db",
+    "mysql:stop": "docker-compose stop db",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
+  },
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "author": "",
+  "license": "MIT"
+}

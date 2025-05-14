@@ -1,0 +1,10 @@
+.git
+node_modules
+dist
+*.log
+.vscode
+.github
+.editorconfig
+README.md
+README.zh-CN.md
+LICENSE

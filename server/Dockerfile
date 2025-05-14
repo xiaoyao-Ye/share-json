@@ -1,17 +1,16 @@
-# 使用Node.js作为基础镜像
-
-FROM node:18-alpine
+FROM node:18-alpine as builder
 
 WORKDIR /app
+RUN corepack enable
 
-COPY package*.json ./
-
-RUN npm install
+COPY package.json pnpm-lock.yaml ./
+RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
+  pnpm install --frozen-lockfile
 
 COPY . .
 
-RUN npm run build
-
 EXPOSE 3000
 
-CMD ["npm", "start"]
+RUN pnpm run build
+
+CMD ["pnpm", "start:prod"]

@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 import { initializeDatabase } from './config/database';
@@ -6,7 +7,6 @@ import { errorHandler } from './middleware/errorHandler';
 import { userIdentity } from './middleware/userIdentity';
 import dotenv from 'dotenv';
 
-// 加载环境变量
 dotenv.config();
 
 const app = new Koa();
@@ -32,10 +32,12 @@ app.use(shareRoutes.allowedMethods());
 const startServer = async () => {
   try {
     // 初始化数据库连接
-    await initializeDatabase();
+    // await initializeDatabase();
     
     app.listen(PORT, () => {
-      console.log(`服务器已启动，端口: ${PORT}`);
+      console.log(`环境: ${process.env.NODE_ENV}`);
+      console.log(`服务器已启动: http://localhost:${PORT}`);
+      console.log(`数据库主机: ${process.env.DB_HOST}`);
     });
   } catch (error) {
     console.error('服务器启动失败:', error);

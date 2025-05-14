@@ -11,13 +11,13 @@ export class Share {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
   userId!: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
   fileName!: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
   filePath!: string;
 
   @Column({
@@ -27,15 +27,15 @@ export class Share {
   })
   expiryType!: ExpiryType;
 
-  @Column({ nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   expiresAt!: Date | null;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'datetime' })
   createdAt!: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'datetime' })
   updatedAt!: Date;
 
-  @Column({ default: false })
+  @Column({ type: 'boolean', default: false })
   isDeleted!: boolean;
 } 
