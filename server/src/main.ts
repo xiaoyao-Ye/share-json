@@ -6,6 +6,8 @@ async function bootstrap() {
 
   app.setGlobalPrefix(process.env.PREFIX ?? '');
 
+  app.enableCors();
+
   setupSwagger(app);
 
   await app.listen(process.env.PORT ?? 3000);
