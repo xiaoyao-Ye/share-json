@@ -52,6 +52,11 @@ export class SharesController {
     if (!uuid) {
       throw new BadRequestException('未提供用户标识');
     }
+
+    if (!shareId) {
+      throw new BadRequestException('未提供分享ID');
+    }
+
     return this.sharesService.deleteShare(uuid, shareId);
   }
 
@@ -60,6 +65,9 @@ export class SharesController {
   @ApiParam({ name: 'shareCode', description: '分享代码' })
   @ApiResponse({ status: 200, description: 'JSON内容' })
   async getShare(@Param('shareCode') shareCode: string): Promise<any> {
+    if (!shareCode) {
+      throw new BadRequestException('未提供分享代码');
+    }
     return this.sharesService.getJsonContentByShareCode(shareCode);
   }
 
