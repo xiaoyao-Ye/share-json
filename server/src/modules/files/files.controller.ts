@@ -7,7 +7,7 @@ import { UploadFileResponseDto } from './dto/upload-file.dto';
 import { Express } from 'express';
 
 @ApiTags('文件')
-@Controller('api/files')
+@Controller('files')
 export class FilesController {
   constructor(
     private readonly filesService: FilesService,
@@ -37,7 +37,7 @@ export class FilesController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @Headers('x-user-id') uuid: string,
+    @Headers('X-User-ID') uuid: string,
   ): Promise<UploadFileResponseDto> {
     if (!uuid) {
       throw new BadRequestException('未提供用户标识');

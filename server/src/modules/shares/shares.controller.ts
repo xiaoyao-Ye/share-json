@@ -5,7 +5,7 @@ import { CreateShareDto, ShareResponseDto } from './dto/create-share.dto';
 import { Response } from 'express';
 
 @ApiTags('分享')
-@Controller('api/shares')
+@Controller('shares')
 export class SharesController {
   constructor(private readonly sharesService: SharesService) {}
 
@@ -17,7 +17,7 @@ export class SharesController {
     required: true,
   })
   @ApiResponse({ status: 201, description: '分享创建成功', type: ShareResponseDto })
-  async createShare(@Headers('x-user-id') uuid: string, @Body() createShareDto: CreateShareDto): Promise<ShareResponseDto> {
+  async createShare(@Headers('X-User-ID') uuid: string, @Body() createShareDto: CreateShareDto): Promise<ShareResponseDto> {
     if (!uuid) {
       throw new BadRequestException('未提供用户标识');
     }
@@ -32,7 +32,7 @@ export class SharesController {
     required: true,
   })
   @ApiResponse({ status: 200, description: '分享列表', type: [ShareResponseDto] })
-  async getUserShares(@Headers('x-user-id') uuid: string): Promise<ShareResponseDto[]> {
+  async getUserShares(@Headers('X-User-ID') uuid: string): Promise<ShareResponseDto[]> {
     if (!uuid) {
       throw new BadRequestException('未提供用户标识');
     }
@@ -48,7 +48,7 @@ export class SharesController {
   })
   @ApiParam({ name: 'shareId', description: '分享ID' })
   @ApiResponse({ status: 204, description: '删除成功' })
-  async deleteShare(@Headers('x-user-id') uuid: string, @Param('shareId') shareId: string): Promise<void> {
+  async deleteShare(@Headers('X-User-ID') uuid: string, @Param('shareId') shareId: string): Promise<void> {
     if (!uuid) {
       throw new BadRequestException('未提供用户标识');
     }

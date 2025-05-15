@@ -4,7 +4,7 @@ import { UsersService } from './users.service';
 import { User } from '../../entities/user.entity';
 
 @ApiTags('用户')
-@Controller('api/users')
+@Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -16,7 +16,7 @@ export class UsersController {
     required: true,
   })
   @ApiResponse({ status: 200, description: '用户信息', type: User })
-  async identifyUser(@Headers('x-user-id') uuid: string): Promise<User> {
+  async identifyUser(@Headers('X-User-ID') uuid: string): Promise<User> {
     return this.usersService.getOrCreateUser(uuid);
   }
 }
