@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { Moon, Sun } from 'lucide-vue-next'
+import { isDark, toggleDark } from '../composables/dark'
+import { Button } from './ui/button'
 </script>
 
 <template>
@@ -8,22 +11,28 @@
         <router-link to="/" class="flex items-center space-x-2">
           <span class="inline-block font-bold">JSON 分享工具</span>
         </router-link>
-        <nav class="flex gap-6">
-          <router-link
-            to="/"
-            class="flex items-center text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
-            :class="{ 'text-foreground': $route.path === '/' }"
-          >
-            首页
-          </router-link>
-          <router-link
-            to="/my-shares"
-            class="flex items-center text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
-            :class="{ 'text-foreground': $route.path === '/my-shares' }"
-          >
-            我的分享
-          </router-link>
-        </nav>
+        <div class="flex items-center gap-4">
+          <nav class="flex gap-6">
+            <router-link
+              to="/"
+              class="flex items-center text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
+              :class="{ 'text-foreground': $route.path === '/' }"
+            >
+              首页
+            </router-link>
+            <router-link
+              to="/my-shares"
+              class="flex items-center text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
+              :class="{ 'text-foreground': $route.path === '/my-shares' }"
+            >
+              我的分享
+            </router-link>
+          </nav>
+          <Button variant="ghost" size="icon" @click="toggleDark()">
+            <Sun v-if="isDark" class="h-5 w-5" />
+            <Moon v-else class="h-5 w-5" />
+          </Button>
+        </div>
       </div>
     </header>
     <main class="flex-1">

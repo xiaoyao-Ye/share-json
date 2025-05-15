@@ -1,50 +1,39 @@
 <script setup lang="ts">
-import { ChevronDown, ChevronRight, ChevronsDown, ChevronsUp } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { ChevronsDown, ChevronsUp } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import VueJsonPretty from 'vue-json-pretty'
 import { Button } from '../components/ui/button'
+import { isDark } from '../composables/dark'
+import 'vue-json-pretty/lib/styles.css'
 
 const props = defineProps<{
   data: any
 }>()
 
-const expandedPaths = ref<Set<string>>(new Set([]))
+const expanded = ref<boolean>(false)
+const expandDepth = ref<number>(1)
+const isVirtual = ref<boolean>(true) // 启用虚拟滚动
+const key = ref<number>(0) // 用于强制重新渲染组件
 
-function togglePath(path: string) {
-  const newExpandedPaths = new Set(expandedPaths.value)
-  if (newExpandedPaths.has(path)) {
-    newExpandedPaths.delete(path)
-  }
-  else {
-    newExpandedPaths.add(path)
-  }
-  expandedPaths.value = newExpandedPaths
-}
+// 根据当前主题计算样式类
+const themeClass = computed(() => isDark.value ? 'json-viewer-dark' : 'json-viewer-light')
 
 function expandAll() {
-  const allPaths = new Set<string>()
-
-  const findAllPaths = (obj: any, path = '') => {
-    if (obj && typeof obj === 'object') {
-      allPaths.add(path)
-      Object.keys(obj).forEach((key) => {
-        const newPath = path ? `${path}.${key}` : key
-        findAllPaths(obj[key], newPath)
-      })
-    }
-  }
-
-  findAllPaths(props.data)
-  expandedPaths.value = allPaths
+  expandDepth.value = Infinity
+  expanded.value = false
+  key.value++ // 强制重新渲染组件
 }
 
 function collapseAll() {
-  expandedPaths.value = new Set()
+  expandDepth.value = 1
+  expanded.value = true
+  key.value++ // 强制重新渲染组件
 }
 </script>
 
 <template>
   <div class="overflow-x-auto">
-    <div class="sticky top-0 flex justify-end gap-2 p-2 border-b bg-background">
+    <div class="sticky top-0 flex justify-end gap-2 p-2 border-b bg-background z-10">
       <Button variant="outline" size="sm" @click="expandAll">
         <ChevronsDown class="w-4 h-4 mr-2" />
         展开全部
@@ -54,109 +43,76 @@ function collapseAll() {
         折叠全部
       </Button>
     </div>
-    <div class="p-4 font-mono text-sm">
-      <template v-if="data === null">
-        <span class="text-gray-500">null</span>
-      </template>
-      <template v-else-if="typeof data === 'boolean'">
-        <span class="text-orange-600">{{ data.toString() }}</span>
-      </template>
-      <template v-else-if="typeof data === 'number'">
-        <span class="text-blue-600">{{ data }}</span>
-      </template>
-      <template v-else-if="typeof data === 'string'">
-        <span class="text-green-600">"{{ data }}"</span>
-      </template>
-      <template v-else-if="Array.isArray(data)">
-        <div>
-          <div class="inline-flex items-center cursor-pointer" @click="togglePath('root')">
-            <ChevronDown v-if="expandedPaths.has('root')" class="w-4 h-4 text-muted-foreground" />
-            <ChevronRight v-else class="w-4 h-4 text-muted-foreground" />
-            <span class="text-gray-500">[{{ data.length }}]</span>
-          </div>
-
-          <div v-if="expandedPaths.has('root')" class="pl-4 ml-4 border-l">
-            <div v-for="(item, i) in data" :key="i" class="my-1">
-              <span class="text-gray-500">{{ i }}: </span>
-              <template v-if="item === null">
-                <span class="text-gray-500">null</span>
-              </template>
-              <template v-else-if="typeof item === 'boolean'">
-                <span class="text-orange-600">{{ item.toString() }}</span>
-              </template>
-              <template v-else-if="typeof item === 'number'">
-                <span class="text-blue-600">{{ item }}</span>
-              </template>
-              <template v-else-if="typeof item === 'string'">
-                <span class="text-green-600">"{{ item }}"</span>
-              </template>
-              <template v-else-if="Array.isArray(item)">
-                <div>
-                  <div class="inline-flex items-center cursor-pointer" @click.stop="togglePath(`root.${i}`)">
-                    <ChevronDown v-if="expandedPaths.has(`root.${i}`)" class="w-4 h-4 text-muted-foreground" />
-                    <ChevronRight v-else class="w-4 h-4 text-muted-foreground" />
-                    <span class="text-gray-500">[{{ item.length }}]</span>
-                  </div>
-                </div>
-              </template>
-              <template v-else-if="typeof item === 'object'">
-                <div>
-                  <div class="inline-flex items-center cursor-pointer" @click.stop="togglePath(`root.${i}`)">
-                    <ChevronDown v-if="expandedPaths.has(`root.${i}`)" class="w-4 h-4 text-muted-foreground" />
-                    <ChevronRight v-else class="w-4 h-4 text-muted-foreground" />
-                    <span class="text-gray-500">{{ `${Object.keys(item).length}` }}</span>
-                  </div>
-                </div>
-              </template>
-            </div>
-          </div>
-        </div>
-      </template>
-      <template v-else-if="typeof data === 'object'">
-        <div>
-          <div class="inline-flex items-center cursor-pointer" @click="togglePath('root')">
-            <ChevronDown v-if="expandedPaths.has('root')" class="w-4 h-4 text-muted-foreground" />
-            <ChevronRight v-else class="w-4 h-4 text-muted-foreground" />
-            <span class="text-gray-500">{{ `${Object.keys(data).length}` }}</span>
-          </div>
-
-          <div v-if="expandedPaths.has('root')" class="pl-4 ml-4 border-l">
-            <div v-for="key in Object.keys(data)" :key="key" class="my-1">
-              <span class="text-purple-600">"{{ key }}"</span>:
-              <template v-if="data[key] === null">
-                <span class="text-gray-500">null</span>
-              </template>
-              <template v-else-if="typeof data[key] === 'boolean'">
-                <span class="text-orange-600">{{ data[key].toString() }}</span>
-              </template>
-              <template v-else-if="typeof data[key] === 'number'">
-                <span class="text-blue-600">{{ data[key] }}</span>
-              </template>
-              <template v-else-if="typeof data[key] === 'string'">
-                <span class="text-green-600">"{{ data[key] }}"</span>
-              </template>
-              <template v-else-if="Array.isArray(data[key])">
-                <div>
-                  <div class="inline-flex items-center cursor-pointer" @click.stop="togglePath(`root.${key}`)">
-                    <ChevronDown v-if="expandedPaths.has(`root.${key}`)" class="w-4 h-4 text-muted-foreground" />
-                    <ChevronRight v-else class="w-4 h-4 text-muted-foreground" />
-                    <span class="text-gray-500">[{{ data[key].length }}]</span>
-                  </div>
-                </div>
-              </template>
-              <template v-else-if="typeof data[key] === 'object'">
-                <div>
-                  <div class="inline-flex items-center cursor-pointer" @click.stop="togglePath(`root.${key}`)">
-                    <ChevronDown v-if="expandedPaths.has(`root.${key}`)" class="w-4 h-4 text-muted-foreground" />
-                    <ChevronRight v-else class="w-4 h-4 text-muted-foreground" />
-                    <span class="text-gray-500">{{ `${Object.keys(data[key]).length}` }}</span>
-                  </div>
-                </div>
-              </template>
-            </div>
-          </div>
-        </div>
-      </template>
+    <div class="p-4 font-mono text-sm json-container">
+      <VueJsonPretty
+        :key="key"
+        :data="props.data"
+        :deep="expandDepth"
+        :show-length="true"
+        :show-icon="true"
+        :collapsed="expanded"
+        hover-preview
+        :virtual="isVirtual"
+        :height="500"
+        :item-height="24"
+        selectable-type="multiple"
+        class="json-viewer"
+        :class="themeClass"
+      />
     </div>
   </div>
 </template>
+
+<style scoped>
+.json-container {
+  overflow-y: auto;
+}
+
+.json-viewer :deep(.vjs-tree) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+/* 浅色模式样式 */
+.json-viewer-light :deep(.vjs-key) {
+  color: #9333ea; /* 紫色 */
+}
+
+.json-viewer-light :deep(.vjs-value.vjs-value-string) {
+  color: #16a34a; /* 绿色 */
+}
+
+.json-viewer-light :deep(.vjs-value.vjs-value-number) {
+  color: #2563eb; /* 蓝色 */
+}
+
+.json-viewer-light :deep(.vjs-value.vjs-value-boolean) {
+  color: #ea580c; /* 橙色 */
+}
+
+.json-viewer-light :deep(.vjs-value.vjs-value-null) {
+  color: #6b7280; /* 灰色 */
+}
+
+/* 深色模式样式 */
+.json-viewer-dark :deep(.vjs-key) {
+  color: #c084fc; /* 亮紫色 */
+}
+
+.json-viewer-dark :deep(.vjs-value.vjs-value-string) {
+  color: #4ade80; /* 亮绿色 */
+}
+
+.json-viewer-dark :deep(.vjs-value.vjs-value-number) {
+  color: #60a5fa; /* 亮蓝色 */
+}
+
+.json-viewer-dark :deep(.vjs-value.vjs-value-boolean) {
+  color: #fb923c; /* 亮橙色 */
+}
+
+.json-viewer-dark :deep(.vjs-value.vjs-value-null) {
+  color: #9ca3af; /* 亮灰色 */
+}
+</style>

@@ -1,22 +1,27 @@
 <script setup lang="ts">
 import { FileUp, Upload as UploadIcon } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
+import { createShare, uploadJsonFile } from '~/api/api'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
 import { Label } from '~/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
-import { mockCreateShare } from '~/lib/mock-api'
-import { getUserId } from '~/lib/user-utils'
 
 const router = useRouter()
 const file = ref<File | null>(null)
 const jsonContent = ref<any>(null)
-const expiration = ref<string>('permanent')
+const expiration = ref<string>('1day')
 const isDragging = ref(false)
 const isUploading = ref(false)
 const error = ref<string | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
+
+// 有效期选项
+const expirationOptions = [
+  { value: '1day', label: '1 天' },
+  { value: '7days', label: '7 天' },
+  { value: 'permanent', label: '永久' },
+]
 
 function handleDragOver(e: DragEvent) {
   e.preventDefault()
@@ -79,27 +84,21 @@ async function handleUpload() {
     isUploading.value = true
     error.value = null
 
-    const userId = getUserId()
-    let expiresAt: Date | null = null
+    const formData = new FormData()
+    formData.append('file', file.value)
 
-    if (expiration.value === '1day') {
-      expiresAt = new Date()
-      expiresAt.setDate(expiresAt.getDate() + 1)
-    }
-    else if (expiration.value === '7days') {
-      expiresAt = new Date()
-      expiresAt.setDate(expiresAt.getDate() + 7)
-    }
+    // 上传文件
+    const shareFile = await uploadJsonFile(formData)
 
+    // 创建分享
     const shareData = {
-      userId,
-      filename: file.value.name,
-      content: jsonContent.value,
-      expiresAt: expiresAt ? expiresAt.toISOString() : null,
+      fileId: shareFile.id,
+      expiryType: expiration.value === '1day' ? 'day' : expiration.value === '7days' ? 'week' : 'permanent',
     }
+    const share = await createShare(shareData)
 
-    const share = await mockCreateShare(shareData)
-    router.push(`/view/${share.id}`)
+    // 跳转到我的分享页面
+    router.push(`/${share.shareCode}`)
   }
   catch (err) {
     console.error('Error uploading file:', err)
@@ -140,30 +139,23 @@ async function handleUpload() {
           {{ file ? `文件大小: ${(file.size / 1024).toFixed(2)} KB` : '支持 .json 文件' }}
         </p>
         <input ref="fileInputRef" type="file" accept=".json" class="hidden" @change="handleFileInputChange">
-        <!-- <Button variant="outline" :disabled="isUploading" @click="fileInputRef?.click()">
-          选择文件
-        </Button> -->
       </div>
 
       <div class="grid gap-4">
         <div class="grid gap-2">
           <Label for="expiration">链接有效期</Label>
-          <Select v-model="expiration" class="w-full" :disabled="isUploading || !file">
-            <SelectTrigger id="expiration">
-              <SelectValue placeholder="选择有效期" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1day">
-                1 天
-              </SelectItem>
-              <SelectItem value="7days">
-                7 天
-              </SelectItem>
-              <SelectItem value="permanent">
-                永久
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <div class="flex flex-wrap gap-2">
+            <Button
+              v-for="option in expirationOptions"
+              :key="option.value"
+              :variant="expiration === option.value ? 'default' : 'outline'"
+              :disabled="isUploading || !file"
+              class="flex-1"
+              @click="expiration = option.value"
+            >
+              {{ option.label }}
+            </Button>
+          </div>
         </div>
       </div>
     </CardContent>

@@ -12,10 +12,3 @@ export function getUserId(): string {
 
   return userId
 }
-
-// 向请求头中添加用户 ID
-export function addUserIdToHeaders(headers: Headers): Headers {
-  const userId = getUserId()
-  headers.append('X-User-ID', userId)
-  return headers
-}

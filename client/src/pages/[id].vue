@@ -2,11 +2,12 @@
 import { AlertCircle, Download, Link } from 'lucide-vue-next'
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { getJsonContentByShareCode, getShareDownloadUrl } from '~/api/api'
 import JsonViewer from '~/components/JsonViewer.vue'
 import Layout from '~/components/Layout.vue'
 import { Alert, AlertDescription, AlertTitle } from '~/components/ui/alert'
 import { Button } from '~/components/ui/button'
-import { mockGetShareById } from '~/lib/mock-api'
+import { useNotification } from '~/composables'
 
 const route = useRoute()
 const router = useRouter()
@@ -15,25 +16,26 @@ const loading = ref(true)
 const expired = ref(false)
 const jsonData = ref<any>(null)
 const id = typeof route.params.id === 'string' ? route.params.id : Array.isArray(route.params.id) ? route.params.id[0] : ''
+const notification = useNotification()
 
 onMounted(async () => {
   try {
     loading.value = true
-    const data = await mockGetShareById(id)
+
+    // 获取JSON内容
+    const data = await getJsonContentByShareCode(id)
 
     if (!data) {
       expired.value = true
       return
     }
 
-    // 检查分享是否过期
-    if (data.expiresAt && new Date(data.expiresAt) < new Date()) {
-      expired.value = true
-      return
+    share.value = {
+      shareCode: id,
+      createdAt: new Date().toISOString(), // 这里我们没有获取分享的元数据，所以使用当前时间
+      expiresAt: null, // 我们也没有关于过期时间的信息
     }
-
-    share.value = data
-    jsonData.value = data.content
+    jsonData.value = data
   }
   catch (error) {
     console.error('Error fetching share:', error)
@@ -47,21 +49,18 @@ onMounted(async () => {
 function handleCopyLink() {
   const url = window.location.href
   navigator.clipboard.writeText(url)
+    .then(() => {
+      notification.success('复制成功', '链接已复制到剪贴板')
+    })
+    .catch((err) => {
+      console.error('复制失败:', err)
+      notification.error('复制失败', '无法复制到剪贴板，请手动复制')
+    })
 }
 
 function handleDownload() {
-  if (!jsonData.value)
-    return
-
-  const blob = new Blob([JSON.stringify(jsonData.value, null, 2)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `json-share-${id}.json`
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+  const downloadUrl = getShareDownloadUrl(id)
+  window.open(downloadUrl, '_blank')
 }
 </script>
 
@@ -105,10 +104,14 @@ function handleDownload() {
 
       <div class="p-4 mb-4 border rounded-lg">
         <div class="mb-2 text-sm text-muted-foreground">
+          <span class="font-medium">文件ID：</span>
+          {{ id }}
+        </div>
+        <div v-if="share && share.createdAt" class="mb-2 text-sm text-muted-foreground">
           <span class="font-medium">创建时间：</span>
           {{ new Date(share.createdAt).toLocaleString() }}
         </div>
-        <div class="text-sm text-muted-foreground">
+        <div v-if="share && share.expiresAt" class="text-sm text-muted-foreground">
           <span class="font-medium">有效期至：</span>
           {{ share.expiresAt ? new Date(share.expiresAt).toLocaleString() : '永久有效' }}
         </div>
