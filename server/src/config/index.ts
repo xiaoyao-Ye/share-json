@@ -1,3 +1,4 @@
 import swagger from './swagger';
+import mysql from './mysql';
 
-export default [swagger];
+export default [swagger, mysql];
