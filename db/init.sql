@@ -1,66 +1,45 @@
--- 创建数据库（如果不存在）
-CREATE DATABASE IF NOT EXISTS json_share CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- 创建数据库
+CREATE DATABASE IF NOT EXISTS json_share DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- 使用数据库
 USE json_share;
 
--- 创建用户表
--- CREATE TABLE IF NOT EXISTS users (
---   id INT AUTO_INCREMENT PRIMARY KEY,
---   username VARCHAR(50) NOT NULL UNIQUE,
---   password VARCHAR(255) NOT NULL,
---   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
--- );
+-- 用户表
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` VARCHAR(36) NOT NULL,
+  `uuid` VARCHAR(36) NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_uuid` (`uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 创建分享文件表
-CREATE TABLE IF NOT EXISTS shares (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT,
-  file_path VARCHAR(255) NOT NULL,
-  file_name VARCHAR(255) NOT NULL,
-  expiry_type VARCHAR(255) NOT NULL,
-  expiry_at TIMESTAMP NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  deleted_at TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
-);
+-- JSON 文件表
+CREATE TABLE IF NOT EXISTS `json_files` (
+  `id` VARCHAR(36) NOT NULL,
+  `file_name` VARCHAR(255) NOT NULL,
+  `file_path` VARCHAR(255) NOT NULL,
+  `file_size` INT NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 创建标签表
--- CREATE TABLE IF NOT EXISTS tags (
---   id INT AUTO_INCREMENT PRIMARY KEY,
---   name VARCHAR(50) NOT NULL UNIQUE,
---   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
--- );
-
--- 创建分享文件和标签的关联表
--- CREATE TABLE IF NOT EXISTS share_tags (
---   share_id INT NOT NULL,
---   tag_id INT NOT NULL,
---   PRIMARY KEY (share_id, tag_id),
---   FOREIGN KEY (share_id) REFERENCES shares(id) ON DELETE CASCADE,
---   FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
--- );
-
--- 创建评论表
--- CREATE TABLE IF NOT EXISTS comments (
---   id INT AUTO_INCREMENT PRIMARY KEY,
---   share_id INT NOT NULL,
---   user_id INT,
---   content TEXT NOT NULL,
---   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---   FOREIGN KEY (share_id) REFERENCES shares(id) ON DELETE CASCADE,
---   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
--- );
-
--- 添加一些默认标签
--- INSERT IGNORE INTO tags (name) VALUES 
---   ('文档'), 
---   ('图片'), 
---   ('视频'), 
---   ('音频'), 
---   ('压缩包'),
---   ('JSON'),
---   ('代码'),
---   ('其他'); 
+-- 分享表
+CREATE TABLE IF NOT EXISTS `shares` (
+  `id` VARCHAR(36) NOT NULL,
+  `share_code` VARCHAR(16) NOT NULL,
+  `user_id` VARCHAR(36) NOT NULL,
+  `json_file_id` VARCHAR(36) NOT NULL,
+  `expires_at` TIMESTAMP NULL,
+  `status` TINYINT NOT NULL DEFAULT '1',
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_share_code` (`share_code`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_expires_at` (`expires_at`),
+  KEY `idx_status` (`status`),
+  CONSTRAINT `fk_shares_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_shares_json_file_id` FOREIGN KEY (`json_file_id`) REFERENCES `json_files` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci; 

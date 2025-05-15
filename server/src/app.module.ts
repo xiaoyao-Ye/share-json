@@ -4,6 +4,9 @@ import { AppService } from './app.service';
 import config from './config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersModule } from './modules/users/users.module';
+import { FilesModule } from './modules/files/files.module';
+import { SharesModule } from './modules/shares/shares.module';
 
 @Module({
   imports: [
@@ -29,6 +32,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         dateStrings: true,
       }),
     }),
+    UsersModule,
+    FilesModule,
+    SharesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

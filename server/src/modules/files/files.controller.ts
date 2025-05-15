@@ -1,0 +1,59 @@
+import { Controller, Post, UseInterceptors, UploadedFile, Headers, BadRequestException } from '@nestjs/common';
+import { FilesService } from './files.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation, ApiConsumes, ApiHeader, ApiBody } from '@nestjs/swagger';
+import { UsersService } from '../users/users.service';
+import { UploadFileResponseDto } from './dto/upload-file.dto';
+import { Express } from 'express';
+
+@ApiTags('文件')
+@Controller('api/files')
+export class FilesController {
+  constructor(
+    private readonly filesService: FilesService,
+    private readonly usersService: UsersService,
+  ) {}
+
+  @Post('upload')
+  @ApiOperation({ summary: '上传JSON文件', description: '上传JSON文件并返回文件信息' })
+  @ApiConsumes('multipart/form-data')
+  @ApiHeader({
+    name: 'X-User-ID',
+    description: '用户UUID',
+    required: true,
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'JSON文件',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Headers('x-user-id') uuid: string,
+  ): Promise<UploadFileResponseDto> {
+    if (!uuid) {
+      throw new BadRequestException('未提供用户标识');
+    }
+
+    // 确保用户存在
+    await this.usersService.getOrCreateUser(uuid);
+
+    // 上传文件
+    const jsonFile = await this.filesService.uploadJsonFile(file);
+
+    return {
+      id: jsonFile.id,
+      fileName: jsonFile.fileName,
+      fileSize: jsonFile.fileSize,
+      uploadedAt: jsonFile.createdAt,
+    };
+  }
+}
