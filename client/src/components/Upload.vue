@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ExpiryType } from '~/api/api'
 import { FileUp, Upload as UploadIcon } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { createShare, uploadJsonFile } from '~/api/api'
@@ -10,16 +11,16 @@ import { Label } from '~/components/ui/label'
 const router = useRouter()
 const file = ref<File | null>(null)
 const jsonContent = ref<any>(null)
-const expiration = ref<string>('1day')
+const expiration = ref<ExpiryType>('day')
 const isDragging = ref(false)
 const isUploading = ref(false)
 const error = ref<string | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
 // 有效期选项
-const expirationOptions = [
-  { value: '1day', label: '1 天' },
-  { value: '7days', label: '7 天' },
+const expirationOptions: { value: ExpiryType, label: string }[] = [
+  { value: 'day', label: '1 天' },
+  { value: 'week', label: '7 天' },
   { value: 'permanent', label: '永久' },
 ]
 
@@ -93,7 +94,7 @@ async function handleUpload() {
     // 创建分享
     const shareData = {
       fileId: shareFile.id,
-      expiryType: expiration.value === '1day' ? 'day' : expiration.value === '7days' ? 'week' : 'permanent',
+      expiryType: expiration.value,
     }
     const share = await createShare(shareData)
 

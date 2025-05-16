@@ -18,9 +18,11 @@ export interface ShareItem {
   createdAt: string
 }
 
+export type ExpiryType = 'day' | 'week' | 'permanent'
+
 export interface CreateShareRequest {
   fileId: string
-  expiryType: 'day' | 'week' | 'permanent'
+  expiryType: ExpiryType
 }
 
 export interface JsonContent {
