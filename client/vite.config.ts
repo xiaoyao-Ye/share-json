@@ -20,6 +20,7 @@ export default defineConfig({
     VueMacros({
       defineOptions: false,
       defineModels: false,
+      betterDefine: false,
       plugins: {
         vue: Vue({
           script: {
