@@ -99,10 +99,6 @@ export class FilesService {
    * @returns 文件实体
    */
   async findById(id: string): Promise<JsonFile> {
-    if (!id) {
-      throw new BadRequestException('文件ID不能为空');
-    }
-
     const file = await this.jsonFilesRepository.findOne({ where: { id } });
     if (!file) {
       throw new NotFoundException(`文件不存在: ${id}`);

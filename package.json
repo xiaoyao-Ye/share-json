@@ -9,6 +9,7 @@
     "server:dev": "pnpm -F server dev",
     "server:build": "pnpm -F server build",
     "server:start": "pnpm -F server start:prod",
+    "server:test": "pnpm -F server test",
     "mysql:dev": "NODE_ENV=development docker-compose up -d db",
     "mysql:prod": "NODE_ENV=production docker-compose up -d db",
     "mysql:stop": "docker-compose stop db",

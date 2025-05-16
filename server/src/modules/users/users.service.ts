@@ -29,13 +29,4 @@ export class UsersService {
 
     return user;
   }
-
-  /**
-   * 根据ID获取用户
-   * @param id 用户ID
-   * @returns 用户实体
-   */
-  // async findById(id: string): Promise<User> {
-  //   return this.usersRepository.findOne({ where: { id } });
-  // }
 }
