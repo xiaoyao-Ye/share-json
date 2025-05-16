@@ -24,6 +24,18 @@ const expirationOptions: { value: ExpiryType, label: string }[] = [
   { value: 'permanent', label: '永久' },
 ]
 
+// 格式化文件大小
+const formattedFileSize = computed(() => {
+  if (!file.value)
+    return ''
+
+  const size = file.value.size
+  if (size < 1024 * 1024) {
+    return `${(size / 1024).toFixed(2)} KB`
+  }
+  return `${(size / (1024 * 1024)).toFixed(2)} MB`
+})
+
 function handleDragOver(e: DragEvent) {
   e.preventDefault()
   isDragging.value = true
@@ -137,7 +149,7 @@ async function handleUpload() {
           {{ file ? file.name : '拖拽文件到此处或点击上传' }}
         </h3>
         <p class="mb-4 text-sm text-muted-foreground">
-          {{ file ? `文件大小: ${(file.size / 1024).toFixed(2)} KB` : '支持 .json 文件' }}
+          {{ file ? `文件大小: ${formattedFileSize}` : '支持 .json 文件' }}
         </p>
         <input ref="fileInputRef" type="file" accept=".json" class="hidden" @change="handleFileInputChange">
       </div>
