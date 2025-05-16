@@ -1,5 +1,4 @@
-import { getUserId } from '../lib/user-utils'
-import { apiClient } from './api-client'
+import { apiClient } from '.'
 
 // 接口定义
 export interface ShareFile {

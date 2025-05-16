@@ -34,7 +34,12 @@ apiClient.interceptors.request.use(
 // 响应拦截器 - 处理常见错误
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
-    return response.data
+    const res = response.data
+    if (res.code !== 200) {
+      return Promise.reject(new Error(res.message))
+    }
+
+    return res.data
   },
   (error: AxiosError) => {
     const status = error.response?.status
