@@ -1,4 +1,5 @@
 import { apiClient } from '.'
+import { getUserId } from '../lib/user-utils'
 
 // 接口定义
 export interface ShareFile {
@@ -26,6 +27,19 @@ export interface CreateShareRequest {
 
 export interface JsonContent {
   [key: string]: any
+}
+
+// Worker 回调类型定义
+export interface WorkerProgressCallback {
+  (currentSize: number, chunk: string): void
+}
+
+export interface WorkerDataCallback {
+  (data: JsonContent): void
+}
+
+export interface WorkerErrorCallback {
+  (error: string, details?: string): void
 }
 
 // API函数
@@ -75,4 +89,49 @@ export async function getJsonContentByShareCode(shareCode: string): Promise<Json
  */
 export function getShareDownloadUrl(shareCode: string): string {
   return `${apiClient.defaults.baseURL}/shares/${shareCode}/download`
+}
+
+/**
+ * 使用Web Worker流式获取JSON内容
+ */
+export function getJsonContentStreamByShareCode(
+  shareCode: string,
+  onStart?: () => void,
+  onProgress?: WorkerProgressCallback,
+  onComplete?: WorkerDataCallback,
+  onError?: WorkerErrorCallback,
+): () => void {
+  const worker = new Worker(
+    new URL('../workers/json-parser.worker.ts', import.meta.url),
+    { type: 'module' },
+  )
+
+  worker.onmessage = ({ data: { type, data, error, details, currentSize, chunk } }) => {
+    switch (type) {
+      case 'start':
+        onStart?.()
+        break
+      case 'progress':
+        onProgress?.(currentSize, chunk)
+        break
+      case 'complete':
+        onComplete?.(data)
+        worker.terminate()
+        break
+      case 'error':
+        onError?.(error, details)
+        worker.terminate()
+        break
+    }
+  }
+
+  worker.onerror = (error) => {
+    onError?.('Worker错误', error.message)
+    worker.terminate()
+  }
+
+  const url = `${apiClient.defaults.baseURL}/shares/${shareCode}`
+  worker.postMessage({ url, userId: getUserId() })
+
+  return () => worker.terminate()
 }

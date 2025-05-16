@@ -118,16 +118,17 @@ export class FilesService {
    * @param id 文件ID
    * @returns JSON内容
    */
-  async getFileContent(id: string): Promise<unknown> {
+  async getFileContentStream(id: string): Promise<fs.ReadStream> {
     const file = await this.findById(id);
     try {
-      const content = await readFileAsync(file.filePath, { encoding: 'utf8' });
-      return JSON.parse(content);
-    } catch (error) {
-      if (error instanceof SyntaxError) {
-        throw new ApiException(`文件不是有效的JSON格式: ${id}`, 400);
+      // 检查文件是否存在
+      if (!(await existsAsync(file.filePath))) {
+        throw new ApiException(`文件在磁盘上不存在: ${id}`, 404);
       }
-      console.error('读取文件内容失败:', error);
+      // 创建并返回读取流
+      return fs.createReadStream(file.filePath);
+    } catch (error) {
+      console.error('创建文件流失败:', error);
       throw new ApiException('读取文件内容失败', 500);
     }
   }
@@ -137,12 +138,17 @@ export class FilesService {
    * @param id 文件ID
    * @returns 文件Buffer
    */
-  async getFileBuffer(id: string): Promise<Buffer> {
+  async getFileBufferStream(id: string): Promise<fs.ReadStream> {
     const file = await this.findById(id);
     try {
-      return readFileAsync(file.filePath);
+      // 检查文件是否存在
+      if (!(await existsAsync(file.filePath))) {
+        throw new ApiException(`文件在磁盘上不存在: ${id}`, 404);
+      }
+      // 创建并返回读取流
+      return fs.createReadStream(file.filePath);
     } catch (error) {
-      console.error('读取文件Buffer失败:', error);
+      console.error('创建文件流失败:', error);
       throw new ApiException('读取文件失败', 500);
     }
   }

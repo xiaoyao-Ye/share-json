@@ -31,6 +31,7 @@ declare module 'vue' {
     Label: typeof import('./src/components/ui/label/Label.vue')['default']
     Layout: typeof import('./src/components/Layout.vue')['default']
     Notification: typeof import('./src/components/Notification.vue')['default']
+    Progress: typeof import('./src/components/ui/progress/Progress.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('./src/components/ui/select/Select.vue')['default']

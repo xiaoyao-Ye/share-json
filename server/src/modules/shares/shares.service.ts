@@ -8,6 +8,7 @@ import { UsersService } from '../users/users.service';
 import { v4 as uuidv4 } from 'uuid';
 import { nanoid } from 'nanoid';
 import { ApiException } from '../../common/exceptions/api.exception';
+import * as fs from 'fs';
 
 @Injectable()
 export class SharesService {
@@ -129,23 +130,23 @@ export class SharesService {
   /**
    * 通过分享码获取JSON内容
    * @param shareCode 分享码
-   * @returns JSON内容
+   * @returns JSON流
    */
-  async getJsonContentByShareCode(shareCode: string): Promise<any> {
+  async getJsonContentByShareCode(shareCode: string): Promise<fs.ReadStream> {
     const share = await this.findByShareCode(shareCode);
-    return this.filesService.getFileContent(share.jsonFileId);
+    return this.filesService.getFileContentStream(share.jsonFileId);
   }
 
   /**
-   * 通过分享码获取文件Buffer
+   * 通过分享码获取文件流
    * @param shareCode 分享码
-   * @returns 文件Buffer和文件名
+   * @returns 文件流和文件名
    */
-  async getFileBufferByShareCode(shareCode: string): Promise<{ buffer: Buffer; fileName: string }> {
+  async getFileStreamByShareCode(shareCode: string): Promise<{ stream: fs.ReadStream; fileName: string }> {
     const share = await this.findByShareCode(shareCode);
-    const buffer = await this.filesService.getFileBuffer(share.jsonFileId);
+    const stream = await this.filesService.getFileBufferStream(share.jsonFileId);
     return {
-      buffer,
+      stream,
       fileName: share.jsonFile.fileName,
     };
   }

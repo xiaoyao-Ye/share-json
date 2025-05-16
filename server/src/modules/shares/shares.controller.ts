@@ -59,10 +59,26 @@ export class SharesController {
   @ApiOperation({ summary: '获取分享内容', description: '获取分享的JSON内容' })
   @ApiParam({ name: 'shareCode', description: '分享码' })
   @ApiResponse({ status: 200, description: 'JSON内容' })
-  async getShare(@Param('shareCode') shareCode: string): Promise<any> {
+  async getShare(@Param('shareCode') shareCode: string, @Res() res: Response): Promise<void> {
     if (!shareCode) throw new ApiException('未提供分享码', 400);
 
-    return this.sharesService.getJsonContentByShareCode(shareCode);
+    const fileStream = await this.sharesService.getJsonContentByShareCode(shareCode);
+
+    // 设置响应头
+    res.set({ 'Content-Type': 'application/json' });
+
+    // 流式传输
+    fileStream.pipe(res);
+
+    // 处理流错误
+    fileStream.on('error', error => {
+      console.error('流传输过程中出错:', error);
+      if (!res.headersSent) {
+        res.status(500).json({ message: '文件流传输失败', error: error.message });
+      } else {
+        res.end();
+      }
+    });
   }
 
   @Get(':shareCode/download')
@@ -70,14 +86,25 @@ export class SharesController {
   @ApiParam({ name: 'shareCode', description: '分享码' })
   @ApiResponse({ status: 200, description: '文件下载' })
   async downloadShare(@Param('shareCode') shareCode: string, @Res() res: Response): Promise<void> {
-    const { buffer, fileName } = await this.sharesService.getFileBufferByShareCode(shareCode);
+    const { stream, fileName } = await this.sharesService.getFileStreamByShareCode(shareCode);
 
+    // 设置响应头
     res.set({
       'Content-Type': 'application/json',
       'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}"`,
-      'Content-Length': buffer.length,
     });
 
-    res.end(buffer);
+    // 流式传输
+    stream.pipe(res);
+
+    // 处理流错误
+    stream.on('error', error => {
+      console.error('文件下载过程中出错:', error);
+      if (!res.headersSent) {
+        res.status(500).json({ message: '文件流传输失败', error: error.message });
+      } else {
+        res.end();
+      }
+    });
   }
 }

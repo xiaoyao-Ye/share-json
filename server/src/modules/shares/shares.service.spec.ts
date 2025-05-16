@@ -4,10 +4,11 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Share } from '../../entities/share.entity';
 import { UsersService } from '../users/users.service';
 import { FilesService } from '../files/files.service';
-import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { CreateShareDto } from './dto/create-share.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { nanoid } from 'nanoid';
+import { Readable } from 'stream';
+import { ApiException } from '../../common/exceptions/api.exception';
 
 // 模拟UUID和nanoid
 jest.mock('uuid', () => ({
@@ -36,6 +37,8 @@ describe('SharesService', () => {
     findById: jest.fn(),
     getFileContent: jest.fn(),
     getFileBuffer: jest.fn(),
+    getFileContentStream: jest.fn(),
+    getFileBufferStream: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -237,14 +240,14 @@ describe('SharesService', () => {
   });
 
   describe('deleteShare', () => {
-    it('should throw NotFoundException if share does not exist', async () => {
+    it('should throw ApiException with 404 status if share does not exist', async () => {
       const user = { id: 'user-id', uuid: 'user-uuid' };
       const shareId = 'non-existent-id';
 
       mockUsersService.getOrCreateUser.mockResolvedValue(user);
       mockSharesRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.deleteShare(user.uuid, shareId)).rejects.toThrow(new NotFoundException('分享不存在'));
+      await expect(service.deleteShare(user.uuid, shareId)).rejects.toThrow(new ApiException('分享不存在', 404));
 
       expect(mockUsersService.getOrCreateUser).toHaveBeenCalledWith(user.uuid);
       expect(mockSharesRepository.findOne).toHaveBeenCalledWith({
@@ -252,7 +255,7 @@ describe('SharesService', () => {
       });
     });
 
-    it('should throw ForbiddenException if user does not own the share', async () => {
+    it('should throw ApiException with 403 status if user does not own the share', async () => {
       const user = { id: 'user-id', uuid: 'user-uuid' };
       const share = {
         id: 'share-id',
@@ -263,7 +266,7 @@ describe('SharesService', () => {
       mockUsersService.getOrCreateUser.mockResolvedValue(user);
       mockSharesRepository.findOne.mockResolvedValue(share);
 
-      await expect(service.deleteShare('user-uuid', 'share-id')).rejects.toThrow(ForbiddenException);
+      await expect(service.deleteShare('user-uuid', 'share-id')).rejects.toThrow(new ApiException('无权删除此分享', 403));
 
       expect(mockUsersService.getOrCreateUser).toHaveBeenCalledWith('user-uuid');
       expect(mockSharesRepository.findOne).toHaveBeenCalledWith({
@@ -296,11 +299,11 @@ describe('SharesService', () => {
   });
 
   describe('findByShareCode', () => {
-    it('should throw NotFoundException if share does not exist', async () => {
+    it('should throw ApiException with 404 status if share does not exist', async () => {
       const shareCode = 'non-existent-code';
       mockSharesRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.findByShareCode(shareCode)).rejects.toThrow(new NotFoundException('分享不存在或已失效'));
+      await expect(service.findByShareCode(shareCode)).rejects.toThrow(new ApiException('分享不存在或已失效', 404));
 
       expect(mockSharesRepository.findOne).toHaveBeenCalledWith({
         where: { shareCode, status: 1 },
@@ -308,7 +311,7 @@ describe('SharesService', () => {
       });
     });
 
-    it('should throw BadRequestException if share is expired', async () => {
+    it('should throw ApiException with 400 status if share is expired', async () => {
       const shareCode = 'test-code';
       const now = new Date();
       const yesterday = new Date(now);
@@ -323,7 +326,7 @@ describe('SharesService', () => {
 
       mockSharesRepository.findOne.mockResolvedValue(share);
 
-      await expect(service.findByShareCode(shareCode)).rejects.toThrow(new BadRequestException('分享已过期'));
+      await expect(service.findByShareCode(shareCode)).rejects.toThrow(new ApiException('分享已过期', 400));
 
       expect(mockSharesRepository.findOne).toHaveBeenCalledWith({
         where: { shareCode, status: 1 },
@@ -377,7 +380,7 @@ describe('SharesService', () => {
   });
 
   describe('getJsonContentByShareCode', () => {
-    it('should return JSON content for valid share', async () => {
+    it('should return a file stream for valid share', async () => {
       const share = {
         id: 'share-id',
         shareCode: 'test-code',
@@ -386,21 +389,23 @@ describe('SharesService', () => {
         status: 1,
       };
 
-      const jsonContent = { test: 'data' };
+      // 创建一个模拟的可读流
+      const mockReadStream = new Readable();
+      mockReadStream._read = jest.fn(); // 必须实现_read方法
 
       mockSharesRepository.findOne.mockResolvedValue(share);
-      mockFilesService.getFileContent.mockResolvedValue(jsonContent);
+      mockFilesService.getFileContentStream.mockResolvedValue(mockReadStream);
 
       const result = await service.getJsonContentByShareCode(share.shareCode);
 
       expect(mockSharesRepository.findOne).toHaveBeenCalled();
-      expect(mockFilesService.getFileContent).toHaveBeenCalledWith(share.jsonFileId);
-      expect(result).toEqual(jsonContent);
+      expect(mockFilesService.getFileContentStream).toHaveBeenCalledWith(share.jsonFileId);
+      expect(result).toBe(mockReadStream);
     });
   });
 
-  describe('getFileBufferByShareCode', () => {
-    it('should return file buffer and filename for valid share', async () => {
+  describe('getFileStreamByShareCode', () => {
+    it('should return file stream and filename for valid share', async () => {
       const share = {
         id: 'share-id',
         shareCode: 'test-code',
@@ -410,17 +415,19 @@ describe('SharesService', () => {
         status: 1,
       };
 
-      const buffer = Buffer.from('file content');
+      // 创建一个模拟的可读流
+      const mockReadStream = new Readable();
+      mockReadStream._read = jest.fn(); // 必须实现_read方法
 
       mockSharesRepository.findOne.mockResolvedValue(share);
-      mockFilesService.getFileBuffer.mockResolvedValue(buffer);
+      mockFilesService.getFileBufferStream.mockResolvedValue(mockReadStream);
 
-      const result = await service.getFileBufferByShareCode(share.shareCode);
+      const result = await service.getFileStreamByShareCode(share.shareCode);
 
       expect(mockSharesRepository.findOne).toHaveBeenCalled();
-      expect(mockFilesService.getFileBuffer).toHaveBeenCalledWith(share.jsonFileId);
+      expect(mockFilesService.getFileBufferStream).toHaveBeenCalledWith(share.jsonFileId);
       expect(result).toEqual({
-        buffer,
+        stream: mockReadStream,
         fileName: share.jsonFile.fileName,
       });
     });
