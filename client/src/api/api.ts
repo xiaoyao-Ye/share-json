@@ -32,13 +32,6 @@ export interface JsonContent {
 // API函数
 
 /**
- * 识别用户（获取或创建用户）
- */
-export async function identifyUser() {
-  return apiClient.get('/users/identify')
-}
-
-/**
  * 上传JSON文件
  */
 export async function uploadJsonFile(file: FormData): Promise<ShareFile> {
@@ -83,29 +76,4 @@ export async function getJsonContentByShareCode(shareCode: string): Promise<Json
  */
 export function getShareDownloadUrl(shareCode: string): string {
   return `${apiClient.defaults.baseURL}/shares/${shareCode}/download`
-}
-
-/**
- * 获取当前用户ID
- */
-export function getCurrentUserId(): string {
-  return getUserId()
-}
-
-// 检查分享是否属于当前用户
-export function isOwnShare(_share: ShareItem): boolean {
-  // 由于我们使用X-User-ID标头，无需比较userId
-  // 所有返回的shares都应该属于当前用户
-  return true
-}
-
-// 检查分享是否过期
-export function isShareExpired(share: ShareItem): boolean {
-  if (!share.expiresAt)
-    return false // 永久有效
-
-  const expireDate = new Date(share.expiresAt)
-  const now = new Date()
-
-  return expireDate < now
 }
