@@ -11,11 +11,10 @@ import { useNotification } from '~/composables'
 
 const route = useRoute()
 const router = useRouter()
-const share = ref<any>(null)
 const loading = ref(true)
 const expired = ref(false)
 const jsonData = ref<any>(null)
-const id = typeof route.params.id === 'string' ? route.params.id : Array.isArray(route.params.id) ? route.params.id[0] : ''
+const shareCode = ref<string>(route.params.id)
 const notification = useNotification()
 
 onMounted(async () => {
@@ -23,18 +22,13 @@ onMounted(async () => {
     loading.value = true
 
     // 获取JSON内容
-    const data = await getJsonContentByShareCode(id)
+    const data = await getJsonContentByShareCode(shareCode.value)
 
     if (!data) {
       expired.value = true
       return
     }
 
-    share.value = {
-      shareCode: id,
-      createdAt: new Date().toISOString(), // 这里我们没有获取分享的元数据，所以使用当前时间
-      expiresAt: null, // 我们也没有关于过期时间的信息
-    }
     jsonData.value = data
   }
   catch (error) {
@@ -59,7 +53,7 @@ function handleCopyLink() {
 }
 
 function handleDownload() {
-  const downloadUrl = getShareDownloadUrl(id)
+  const downloadUrl = getShareDownloadUrl(shareCode.value)
   window.open(downloadUrl, '_blank')
 }
 </script>
@@ -99,21 +93,6 @@ function handleDownload() {
             <Download class="w-4 h-4 mr-2" />
             下载 JSON
           </Button>
-        </div>
-      </div>
-
-      <div class="p-4 mb-4 border rounded-lg">
-        <div class="mb-2 text-sm text-muted-foreground">
-          <span class="font-medium">文件ID：</span>
-          {{ id }}
-        </div>
-        <div v-if="share && share.createdAt" class="mb-2 text-sm text-muted-foreground">
-          <span class="font-medium">创建时间：</span>
-          {{ new Date(share.createdAt).toLocaleString() }}
-        </div>
-        <div v-if="share && share.expiresAt" class="text-sm text-muted-foreground">
-          <span class="font-medium">有效期至：</span>
-          {{ share.expiresAt ? new Date(share.expiresAt).toLocaleString() : '永久有效' }}
         </div>
       </div>
 
