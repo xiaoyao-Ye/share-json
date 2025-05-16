@@ -1,12 +1,25 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { setupSwagger } from './swagger';
+import { ValidationPipe } from '@nestjs/common';
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const IS_DEV = process.env.NODE_ENV === 'development';
+
+  // 创建应用实例, 设置日志配置
+  const app = await NestFactory.create(AppModule, {
+    logger: IS_DEV ? ['error', 'warn', 'debug', 'log'] : ['error', 'warn'],
+  });
 
   app.setGlobalPrefix(process.env.PREFIX ?? '');
 
   app.enableCors();
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+    }),
+  );
 
   setupSwagger(app);
 
