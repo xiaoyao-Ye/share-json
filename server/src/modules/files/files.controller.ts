@@ -1,10 +1,11 @@
-import { Controller, Post, UseInterceptors, UploadedFile, Headers, BadRequestException } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, UploadedFile, Headers } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiConsumes, ApiHeader, ApiBody } from '@nestjs/swagger';
 import { UsersService } from '../users/users.service';
 import { UploadFileResponseDto } from './dto/upload-file.dto';
 import { Express } from 'express';
+import { ApiException } from '../../common/exceptions/api.exception';
 
 @ApiTags('文件')
 @Controller('files')
@@ -39,9 +40,7 @@ export class FilesController {
     @UploadedFile() file: Express.Multer.File,
     @Headers('X-User-ID') uuid: string,
   ): Promise<UploadFileResponseDto> {
-    if (!uuid) {
-      throw new BadRequestException('未提供用户标识');
-    }
+    if (!uuid) throw new ApiException('未提供用户标识', 400);
 
     // 确保用户存在
     await this.usersService.getOrCreateUser(uuid);

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Share } from '../../entities/share.entity';
@@ -7,6 +7,7 @@ import { FilesService } from '../files/files.service';
 import { UsersService } from '../users/users.service';
 import { v4 as uuidv4 } from 'uuid';
 import { nanoid } from 'nanoid';
+import { ApiException } from '../../common/exceptions/api.exception';
 
 @Injectable()
 export class SharesService {
@@ -95,13 +96,9 @@ export class SharesService {
       where: { id: shareId },
     });
 
-    if (!share) {
-      throw new NotFoundException('分享不存在');
-    }
+    if (!share) throw new ApiException('分享不存在', 404);
 
-    if (share.userId !== user.id) {
-      throw new ForbiddenException('无权删除此分享');
-    }
+    if (share.userId !== user.id) throw new ApiException('无权删除此分享', 403);
 
     // 软删除，将状态设为0
     share.status = 0;
@@ -119,13 +116,11 @@ export class SharesService {
       relations: ['jsonFile'],
     });
 
-    if (!share) {
-      throw new NotFoundException('分享不存在或已失效');
-    }
+    if (!share) throw new ApiException('分享不存在或已失效', 404);
 
     // 检查是否过期
     if (share.expiresAt && new Date() > share.expiresAt) {
-      throw new BadRequestException('分享已过期');
+      throw new ApiException('分享已过期', 400);
     }
 
     return share;

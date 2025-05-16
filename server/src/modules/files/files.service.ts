@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JsonFile } from '../../entities/json-file.entity';
@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
+import { ApiException } from '../../common/exceptions/api.exception';
 
 const writeFileAsync = promisify(fs.writeFile);
 const readFileAsync = promisify(fs.readFile);
@@ -35,7 +36,7 @@ export class FilesService {
       }
     } catch (error) {
       console.error('创建上传目录失败:', error);
-      throw new InternalServerErrorException('无法创建上传目录');
+      throw new ApiException('无法创建上传目录', 500);
     }
   }
 
@@ -46,18 +47,18 @@ export class FilesService {
    */
   async uploadJsonFile(file: Express.Multer.File): Promise<JsonFile> {
     if (!file) {
-      throw new BadRequestException('未提供文件');
+      throw new ApiException('未提供文件', 400);
     }
 
     if (!file.originalname.toLowerCase().endsWith('.json')) {
-      throw new BadRequestException('文件必须是JSON格式');
+      throw new ApiException('文件必须是JSON格式', 400);
     }
 
     // 验证文件是否为JSON
     try {
       JSON.parse(file.buffer.toString());
     } catch {
-      throw new BadRequestException('文件内容不是有效的JSON格式');
+      throw new ApiException('文件内容不是有效的JSON格式', 400);
     }
 
     const fileId = uuidv4();
@@ -89,7 +90,7 @@ export class FilesService {
       }
 
       console.error('保存文件失败:', error);
-      throw new InternalServerErrorException('保存文件失败');
+      throw new ApiException('保存文件失败', 500);
     }
   }
 
@@ -101,12 +102,12 @@ export class FilesService {
   async findById(id: string): Promise<JsonFile> {
     const file = await this.jsonFilesRepository.findOne({ where: { id } });
     if (!file) {
-      throw new NotFoundException(`文件不存在: ${id}`);
+      throw new ApiException(`文件不存在: ${id}`, 404);
     }
 
     // 验证文件是否在磁盘上存在
     if (!(await existsAsync(file.filePath))) {
-      throw new NotFoundException(`文件在磁盘上不存在: ${id}`);
+      throw new ApiException(`文件在磁盘上不存在: ${id}`, 404);
     }
 
     return file;
@@ -124,10 +125,10 @@ export class FilesService {
       return JSON.parse(content);
     } catch (error) {
       if (error instanceof SyntaxError) {
-        throw new BadRequestException(`文件不是有效的JSON格式: ${id}`);
+        throw new ApiException(`文件不是有效的JSON格式: ${id}`, 400);
       }
       console.error('读取文件内容失败:', error);
-      throw new InternalServerErrorException('读取文件内容失败');
+      throw new ApiException('读取文件内容失败', 500);
     }
   }
 
@@ -142,7 +143,7 @@ export class FilesService {
       return readFileAsync(file.filePath);
     } catch (error) {
       console.error('读取文件Buffer失败:', error);
-      throw new InternalServerErrorException('读取文件失败');
+      throw new ApiException('读取文件失败', 500);
     }
   }
 }

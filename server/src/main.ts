@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { setupSwagger } from './swagger';
 import { ValidationPipe } from '@nestjs/common';
+import { TransformResponseInterceptor } from './common/interceptors/api.transform.interceptor';
+import { HttpExceptionFilter } from './common/filters/http.exception.filter';
 
 async function bootstrap() {
   const IS_DEV = process.env.NODE_ENV === 'development';
@@ -20,6 +22,10 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  app.useGlobalInterceptors(new TransformResponseInterceptor());
+
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   setupSwagger(app);
 
