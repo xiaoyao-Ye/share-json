@@ -119,8 +119,7 @@ export class SharesService {
 
     if (!share) throw new ApiException('分享不存在或已失效', 404);
 
-    // 检查是否过期
-    if (share.expiresAt && new Date() > share.expiresAt) {
+    if (share.expiresAt && new Date() > new Date(share.expiresAt)) {
       throw new ApiException('分享已过期', 400);
     }
 

@@ -56,10 +56,14 @@ function loadJsonContent() {
     },
     // 完成处理
     (data) => {
+      loading.value = false
+      if (data.code === 404 || data.code === 400) {
+        expired.value = true
+        return
+      }
+      isStreaming.value = false
       jsonData.value = data
       progress.value = 100
-      isStreaming.value = false
-      loading.value = false
     },
     // 错误处理
     (error, details) => {
