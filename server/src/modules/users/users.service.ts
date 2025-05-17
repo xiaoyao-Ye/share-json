@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from '../../entities/user.entity';
-import { v4 as uuidv4 } from 'uuid';
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { User } from '../../entities/user.entity'
+import { v4 as uuidv4 } from 'uuid'
 
 @Injectable()
 export class UsersService {
@@ -17,16 +17,16 @@ export class UsersService {
    * @returns 用户实体
    */
   async getOrCreateUser(uuid: string): Promise<User> {
-    let user = await this.usersRepository.findOne({ where: { uuid } });
+    let user = await this.usersRepository.findOne({ where: { uuid } })
 
     if (!user) {
       user = this.usersRepository.create({
         id: uuidv4(),
         uuid,
-      });
-      await this.usersRepository.save(user);
+      })
+      await this.usersRepository.save(user)
     }
 
-    return user;
+    return user
   }
 }

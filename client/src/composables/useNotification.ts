@@ -1,4 +1,4 @@
-import { createVNode, ref, render } from 'vue'
+import { createVNode, render } from 'vue'
 import Notification from '../components/Notification.vue'
 
 export interface ShowNotificationOptions {
@@ -33,9 +33,8 @@ export function useNotification() {
       close: () => {
         // 使用组件实例中的close方法
         if (vnode.component && vnode.component.exposed) {
-          (vnode.component.exposed as any).close()
-        }
-        else {
+          ;(vnode.component.exposed as any).close()
+        } else {
           // 备用方法：直接移除DOM
           render(null, container)
           if (document.body.contains(container)) {

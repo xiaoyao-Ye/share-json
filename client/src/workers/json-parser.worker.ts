@@ -12,7 +12,7 @@ globalThis.onmessage = async (event) => {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'X-User-ID': userId || '',
       },
     })
@@ -32,8 +32,7 @@ globalThis.onmessage = async (event) => {
 
     // 获取ReadableStream
     const reader = response.body?.getReader()
-    if (!reader)
-      throw new Error('无法获取响应流')
+    if (!reader) throw new Error('无法获取响应流')
 
     let jsonText = ''
     const decoder = new TextDecoder()
@@ -41,8 +40,7 @@ globalThis.onmessage = async (event) => {
     // 处理流数据
     while (true) {
       const { done, value } = await reader.read()
-      if (done)
-        break
+      if (done) break
 
       const chunk = decoder.decode(value, { stream: true })
       jsonText += chunk
@@ -68,8 +66,7 @@ globalThis.onmessage = async (event) => {
         data: jsonData,
         size: jsonText.length,
       })
-    }
-    catch (parseError: unknown) {
+    } catch (parseError: unknown) {
       const errorMessage = parseError instanceof Error ? parseError.message : '未知解析错误'
       globalThis.postMessage({
         type: 'error',
@@ -77,8 +74,7 @@ globalThis.onmessage = async (event) => {
         details: errorMessage,
       })
     }
-  }
-  catch (error: unknown) {
+  } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : '未知错误'
     globalThis.postMessage({
       type: 'error',

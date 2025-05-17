@@ -62,16 +62,11 @@ defineExpose({
     enter-to-class="transform scale-100 opacity-100"
     leave-active-class="transition duration-200 ease-in"
     leave-from-class="transform scale-100 opacity-100"
-    leave-to-class="transform scale-95 opacity-0"
-  >
-    <div
-      v-if="visible"
-      class="fixed top-16 left-1/2 z-50 -translate-x-1/2 max-w-sm  mx-4"
-    >
+    leave-to-class="transform scale-95 opacity-0">
+    <div v-if="visible" class="fixed top-16 left-1/2 z-50 -translate-x-1/2 max-w-sm mx-4">
       <Alert
         :variant="type === 'error' ? 'destructive' : 'default'"
-        class="shadow-md border border-border"
-      >
+        class="shadow-md border border-border">
         <CheckCircle v-if="type === 'success'" class="text-green-500" />
         <AlertCircle v-else-if="type === 'info'" class="text-blue-500" />
         <XCircle v-else-if="type === 'error'" class="text-destructive" />

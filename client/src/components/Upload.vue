@@ -5,7 +5,14 @@ import { useRouter } from 'vue-router'
 import { createShare, uploadJsonFile } from '~/api/api'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Button } from '~/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '~/components/ui/card'
 import { Label } from '~/components/ui/label'
 
 const router = useRouter()
@@ -18,7 +25,7 @@ const error = ref<string | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
 // 有效期选项
-const expirationOptions: { value: ExpiryType, label: string }[] = [
+const expirationOptions: { value: ExpiryType; label: string }[] = [
   { value: 'day', label: '1 天' },
   { value: 'week', label: '7 天' },
   { value: 'permanent', label: '永久' },
@@ -26,8 +33,7 @@ const expirationOptions: { value: ExpiryType, label: string }[] = [
 
 // 格式化文件大小
 const formattedFileSize = computed(() => {
-  if (!file.value)
-    return ''
+  if (!file.value) return ''
 
   const size = file.value.size
   if (size < 1024 * 1024) {
@@ -78,8 +84,7 @@ function handleFileSelect(selectedFile: File) {
     try {
       const content = JSON.parse(e.target?.result as string)
       jsonContent.value = content
-    }
-    catch (err) {
+    } catch (err) {
       console.error('Error parsing JSON:', err)
       error.value = '无效的 JSON 文件'
       file.value = null
@@ -90,8 +95,7 @@ function handleFileSelect(selectedFile: File) {
 }
 
 async function handleUpload() {
-  if (!file.value || !jsonContent.value)
-    return
+  if (!file.value || !jsonContent.value) return
 
   try {
     isUploading.value = true
@@ -112,12 +116,10 @@ async function handleUpload() {
 
     // 跳转到我的分享页面
     router.push(`/${share.shareCode}`)
-  }
-  catch (err) {
+  } catch (err) {
     console.error('Error uploading file:', err)
     error.value = '上传失败，请重试'
-  }
-  finally {
+  } finally {
     isUploading.value = false
   }
 }
@@ -140,8 +142,7 @@ async function handleUpload() {
         @dragover="handleDragOver"
         @dragleave="handleDragLeave"
         @drop="handleDrop"
-        @click="fileInputRef?.click()"
-      >
+        @click="fileInputRef?.click()">
         <div class="p-3 mb-4 rounded-full bg-primary/10">
           <FileUp class="w-6 h-6 text-primary" />
         </div>
@@ -151,7 +152,12 @@ async function handleUpload() {
         <p class="mb-4 text-sm text-muted-foreground">
           {{ file ? `文件大小: ${formattedFileSize}` : '支持 .json 文件' }}
         </p>
-        <input ref="fileInputRef" type="file" accept=".json" class="hidden" @change="handleFileInputChange">
+        <input
+          ref="fileInputRef"
+          type="file"
+          accept=".json"
+          class="hidden"
+          @change="handleFileInputChange" />
       </div>
 
       <div class="grid gap-4">
@@ -164,8 +170,7 @@ async function handleUpload() {
               :variant="expiration === option.value ? 'default' : 'outline'"
               :disabled="isUploading || !file"
               class="flex-1"
-              @click="expiration = option.value"
-            >
+              @click="expiration = option.value">
               {{ option.label }}
             </Button>
           </div>
@@ -175,7 +180,8 @@ async function handleUpload() {
     <CardFooter>
       <Button class="w-full" :disabled="isUploading || !file" @click="handleUpload">
         <template v-if="isUploading">
-          <div class="w-4 h-4 mr-2 border-2 rounded-full border-background animate-spin border-t-transparent" />
+          <div
+            class="w-4 h-4 mr-2 border-2 rounded-full border-background animate-spin border-t-transparent" />
           上传中...
         </template>
         <template v-else>

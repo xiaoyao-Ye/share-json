@@ -101,10 +101,9 @@ export function getJsonContentStreamByShareCode(
   onComplete?: WorkerDataCallback,
   onError?: WorkerErrorCallback,
 ): () => void {
-  const worker = new Worker(
-    new URL('../workers/json-parser.worker.ts', import.meta.url),
-    { type: 'module' },
-  )
+  const worker = new Worker(new URL('../workers/json-parser.worker.ts', import.meta.url), {
+    type: 'module',
+  })
 
   worker.onmessage = ({ data: { type, data, error, details, currentSize, chunk } }) => {
     switch (type) {

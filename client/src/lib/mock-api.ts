@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 let shares: any[] = []
 
 // 辅助函数，模拟 API 延迟
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // 创建新分享
 export async function mockCreateShare(shareData: any) {
@@ -37,7 +37,7 @@ export async function mockGetShareById(id: string) {
   const storedShares = JSON.parse(localStorage.getItem('json-shares') || '[]')
   shares = storedShares
 
-  return shares.find(share => share.id === id) || null
+  return shares.find((share) => share.id === id) || null
 }
 
 // 获取用户所有分享
@@ -49,7 +49,7 @@ export async function mockGetUserShares(userId: string) {
   shares = storedShares
 
   return shares
-    .filter(share => share.userId === userId)
+    .filter((share) => share.userId === userId)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 }
 
@@ -62,7 +62,7 @@ export async function mockDeleteShare(id: string, userId: string) {
   shares = storedShares
 
   // 过滤掉要删除的分享
-  const updatedShares = shares.filter(share => !(share.id === id && share.userId === userId))
+  const updatedShares = shares.filter((share) => !(share.id === id && share.userId === userId))
 
   // 更新 localStorage
   localStorage.setItem('json-shares', JSON.stringify(updatedShares))

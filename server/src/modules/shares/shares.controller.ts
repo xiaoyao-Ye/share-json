@@ -1,9 +1,9 @@
-import { Controller, Post, Get, Delete, Param, Body, Headers, Res } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiHeader, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { SharesService } from './shares.service';
-import { CreateShareDto, ShareResponseDto } from './dto/create-share.dto';
-import { Response } from 'express';
-import { ApiException } from '../../common/exceptions/api.exception';
+import { Controller, Post, Get, Delete, Param, Body, Headers, Res } from '@nestjs/common'
+import { ApiTags, ApiOperation, ApiHeader, ApiResponse, ApiParam } from '@nestjs/swagger'
+import { SharesService } from './shares.service'
+import { CreateShareDto, ShareResponseDto } from './dto/create-share.dto'
+import { Response } from 'express'
+import { ApiException } from '../../common/exceptions/api.exception'
 
 @ApiTags('分享')
 @Controller('shares')
@@ -18,10 +18,13 @@ export class SharesController {
     required: true,
   })
   @ApiResponse({ status: 201, description: '分享创建成功', type: ShareResponseDto })
-  async createShare(@Headers('X-User-ID') uuid: string, @Body() createShareDto: CreateShareDto): Promise<ShareResponseDto> {
-    if (!uuid) throw new ApiException('未提供用户标识', 400);
+  async createShare(
+    @Headers('X-User-ID') uuid: string,
+    @Body() createShareDto: CreateShareDto,
+  ): Promise<ShareResponseDto> {
+    if (!uuid) throw new ApiException('未提供用户标识', 400)
 
-    return this.sharesService.createShare(uuid, createShareDto);
+    return this.sharesService.createShare(uuid, createShareDto)
   }
 
   @Get('mine')
@@ -33,9 +36,9 @@ export class SharesController {
   })
   @ApiResponse({ status: 200, description: '分享列表', type: [ShareResponseDto] })
   async getUserShares(@Headers('X-User-ID') uuid: string): Promise<ShareResponseDto[]> {
-    if (!uuid) throw new ApiException('未提供用户标识', 400);
+    if (!uuid) throw new ApiException('未提供用户标识', 400)
 
-    return this.sharesService.findUserShares(uuid);
+    return this.sharesService.findUserShares(uuid)
   }
 
   @Delete(':shareId')
@@ -47,12 +50,15 @@ export class SharesController {
   })
   @ApiParam({ name: 'shareId', description: '分享ID' })
   @ApiResponse({ status: 204, description: '删除成功' })
-  async deleteShare(@Headers('X-User-ID') uuid: string, @Param('shareId') shareId: string): Promise<void> {
-    if (!uuid) throw new ApiException('未提供用户标识', 400);
+  async deleteShare(
+    @Headers('X-User-ID') uuid: string,
+    @Param('shareId') shareId: string,
+  ): Promise<void> {
+    if (!uuid) throw new ApiException('未提供用户标识', 400)
 
-    if (!shareId) throw new ApiException('未提供分享ID', 400);
+    if (!shareId) throw new ApiException('未提供分享ID', 400)
 
-    return this.sharesService.deleteShare(uuid, shareId);
+    return this.sharesService.deleteShare(uuid, shareId)
   }
 
   @Get(':shareCode')
@@ -60,25 +66,25 @@ export class SharesController {
   @ApiParam({ name: 'shareCode', description: '分享码' })
   @ApiResponse({ status: 200, description: 'JSON内容' })
   async getShare(@Param('shareCode') shareCode: string, @Res() res: Response): Promise<void> {
-    if (!shareCode) throw new ApiException('未提供分享码', 400);
+    if (!shareCode) throw new ApiException('未提供分享码', 400)
 
-    const fileStream = await this.sharesService.getJsonContentByShareCode(shareCode);
+    const fileStream = await this.sharesService.getJsonContentByShareCode(shareCode)
 
     // 设置响应头
-    res.set({ 'Content-Type': 'application/json' });
+    res.set({ 'Content-Type': 'application/json' })
 
     // 流式传输
-    fileStream.pipe(res);
+    fileStream.pipe(res)
 
     // 处理流错误
-    fileStream.on('error', error => {
-      console.error('流传输过程中出错:', error);
+    fileStream.on('error', (error) => {
+      console.error('流传输过程中出错:', error)
       if (!res.headersSent) {
-        res.status(500).json({ message: '文件流传输失败', error: error.message });
+        res.status(500).json({ message: '文件流传输失败', error: error.message })
       } else {
-        res.end();
+        res.end()
       }
-    });
+    })
   }
 
   @Get(':shareCode/download')
@@ -86,25 +92,25 @@ export class SharesController {
   @ApiParam({ name: 'shareCode', description: '分享码' })
   @ApiResponse({ status: 200, description: '文件下载' })
   async downloadShare(@Param('shareCode') shareCode: string, @Res() res: Response): Promise<void> {
-    const { stream, fileName } = await this.sharesService.getFileStreamByShareCode(shareCode);
+    const { stream, fileName } = await this.sharesService.getFileStreamByShareCode(shareCode)
 
     // 设置响应头
     res.set({
       'Content-Type': 'application/json',
       'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}"`,
-    });
+    })
 
     // 流式传输
-    stream.pipe(res);
+    stream.pipe(res)
 
     // 处理流错误
-    stream.on('error', error => {
-      console.error('文件下载过程中出错:', error);
+    stream.on('error', (error) => {
+      console.error('文件下载过程中出错:', error)
       if (!res.headersSent) {
-        res.status(500).json({ message: '文件流传输失败', error: error.message });
+        res.status(500).json({ message: '文件流传输失败', error: error.message })
       } else {
-        res.end();
+        res.end()
       }
-    });
+    })
   }
 }

@@ -46,8 +46,7 @@ function loadJsonContent() {
       // 估算总大小以计算进度
       if (totalBytes.value === 0) {
         totalBytes.value = currentSize * 20 // 假设数据至少是第一个块的20倍
-      }
-      else if (currentSize > totalBytes.value * 0.8) {
+      } else if (currentSize > totalBytes.value * 0.8) {
         totalBytes.value = currentSize * 1.5
       }
 
@@ -72,8 +71,7 @@ function loadJsonContent() {
       // 检查是否过期或不存在的错误
       if (error.includes('404') || error.includes('不存在') || error.includes('过期')) {
         expired.value = true
-      }
-      else {
+      } else {
         notification.error('加载失败', details || error)
       }
 
@@ -85,8 +83,7 @@ function loadJsonContent() {
 
 // 格式化字节大小为人类可读格式
 function formatBytes(bytes: number): string {
-  if (bytes === 0)
-    return '0 B'
+  if (bytes === 0) return '0 B'
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
@@ -94,7 +91,8 @@ function formatBytes(bytes: number): string {
 }
 
 function handleCopyLink() {
-  navigator.clipboard.writeText(window.location.href)
+  navigator.clipboard
+    .writeText(window.location.href)
     .then(() => notification.success('复制成功', '链接已复制到剪贴板'))
     .catch((err) => {
       console.error('复制失败:', err)
@@ -123,7 +121,8 @@ function handleDownload() {
         </div>
       </div>
       <div v-else class="flex justify-center">
-        <div class="w-10 h-10 border-4 rounded-full border-primary border-t-transparent animate-spin" />
+        <div
+          class="w-10 h-10 border-4 rounded-full border-primary border-t-transparent animate-spin" />
       </div>
     </div>
 
@@ -134,17 +133,13 @@ function handleDownload() {
         <AlertDescription>此分享链接已过期或不存在。请联系分享者获取新的链接。</AlertDescription>
       </Alert>
       <div class="flex justify-center mt-4">
-        <Button @click="router.push('/')">
-          返回首页
-        </Button>
+        <Button @click="router.push('/')"> 返回首页 </Button>
       </div>
     </div>
 
     <div v-else class="container py-6">
       <div class="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
-        <h1 class="text-2xl font-bold">
-          JSON 预览
-        </h1>
+        <h1 class="text-2xl font-bold">JSON 预览</h1>
         <div class="flex flex-wrap gap-2">
           <Button variant="outline" @click="handleCopyLink">
             <Link class="w-4 h-4 mr-2" />

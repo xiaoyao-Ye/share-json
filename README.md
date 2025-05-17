@@ -1,4 +1,3 @@
-
 # JSON分享服务
 
 这是一个完整的JSON分享服务，允许用户上传JSON文件并生成唯一的分享链接，支持设置链接有效期。
@@ -22,12 +21,14 @@
 ## 技术栈
 
 ### 前端
+
 - Vue 3 + TypeScript
 - Vue Router
 - UnoCSS
 - Vite
 
 ### 后端
+
 - Node.js + TypeScript
 - Koa
 - TypeORM + MySQL
@@ -68,5 +69,6 @@ npm run dev
 ## 项目文档
 
 更多详细信息，请参阅：
+
 - [前端README](./client/README.md)
 - [后端README](./server/README.md)

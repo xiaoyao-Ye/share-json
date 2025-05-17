@@ -1,11 +1,10 @@
-# version: '3.8'
-
 services:
   client:
     build:
-      context: ./client
+      context: .
+      dockerfile: docker/client.Dockerfile
     ports:
-      - "80:80"
+      - '80:80'
     depends_on:
       - server
     networks:
@@ -14,28 +13,29 @@ services:
 
   server:
     build:
-      context: ./server
+      context: .
+      dockerfile: docker/server.Dockerfile
     restart: always
     ports:
-      - "3000:3000"
+      - '3000:3000'
     depends_on:
       - db
     env_file:
       - ./server/.env.production
     volumes:
-      - ./server/uploads:/app/uploads
+      - uploads:/app/uploads
     networks:
       - share-network
-  
+
   db:
     image: mysql:8.0
     restart: always
     ports:
-      - "3306:3306"
+      - '3306:3306'
     env_file:
-      - ./server/.env${NODE_ENV:+.${NODE_ENV}}
+      - ./server/.env.production
     volumes:
-      - ./db/data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - share-network
@@ -43,3 +43,7 @@ services:
 networks:
   share-network:
     driver: bridge
+
+volumes:
+  mysql_data:
+  uploads:

@@ -47,10 +47,13 @@ apiClient.interceptors.response.use(
     // 错误消息
     let message = '发生错误，请稍后再试'
 
-    if (error.response?.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
+    if (
+      error.response?.data &&
+      typeof error.response.data === 'object' &&
+      'message' in error.response.data
+    ) {
       message = String(error.response.data.message)
-    }
-    else if (error.message) {
+    } else if (error.message) {
       message = error.message
     }
 
@@ -74,8 +77,7 @@ apiClient.interceptors.response.use(
       default:
         if (!navigator.onLine) {
           console.error('网络连接已断开')
-        }
-        else {
+        } else {
           console.error('未知错误', message)
         }
         break

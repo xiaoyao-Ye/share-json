@@ -4,9 +4,26 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { deleteShare, getUserShares } from '~/api/api'
 import Layout from '~/components/Layout.vue'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '~/components/ui/alert-dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '~/components/ui/alert-dialog'
 import { Button } from '~/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '~/components/ui/table'
 import { useNotification } from '~/composables'
 
 const router = useRouter()
@@ -20,18 +37,17 @@ onMounted(async () => {
     loading.value = true
     const data = await getUserShares()
     shares.value = data
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Error fetching shares:', error)
-  }
-  finally {
+  } finally {
     loading.value = false
   }
 })
 
 function handleCopyLink(shareCode: string) {
   const url = `${window.location.origin}/${shareCode}`
-  navigator.clipboard.writeText(url)
+  navigator.clipboard
+    .writeText(url)
     .then(() => {
       notification.success('复制成功', '链接已复制到剪贴板')
     })
@@ -42,26 +58,22 @@ function handleCopyLink(shareCode: string) {
 }
 
 async function handleDeleteShare(shareId: string) {
-  if (!shareId)
-    return
+  if (!shareId) return
 
   try {
     await deleteShare(shareId)
-    shares.value = shares.value.filter(share => share.id !== shareId)
+    shares.value = shares.value.filter((share) => share.id !== shareId)
     notification.success('删除成功', '分享链接已删除')
-  }
-  catch (error) {
+  } catch (error) {
     console.error('删除分享错误:', error)
     notification.error('删除失败', '请稍后重试')
-  }
-  finally {
+  } finally {
     shareToDelete.value = null
   }
 }
 
 function formatExpiryDate(expiresAt: string | null) {
-  if (!expiresAt)
-    return '永久有效'
+  if (!expiresAt) return '永久有效'
 
   const expiry = new Date(expiresAt)
   const now = new Date()
@@ -77,24 +89,17 @@ function formatExpiryDate(expiresAt: string | null) {
 <template>
   <Layout>
     <div class="container py-6">
-      <h1 class="mb-6 text-2xl font-bold">
-        我的分享
-      </h1>
+      <h1 class="mb-6 text-2xl font-bold">我的分享</h1>
 
       <div v-if="loading" class="flex justify-center py-10">
-        <div class="w-10 h-10 border-4 rounded-full border-primary border-t-transparent animate-spin" />
+        <div
+          class="w-10 h-10 border-4 rounded-full border-primary border-t-transparent animate-spin" />
       </div>
 
       <div v-else-if="shares.length === 0" class="p-8 text-center border rounded-lg">
-        <h2 class="text-lg font-medium">
-          您还没有创建任何分享
-        </h2>
-        <p class="mt-2 text-muted-foreground">
-          上传 JSON 文件并创建分享链接
-        </p>
-        <Button class="mt-4" @click="router.push('/')">
-          创建分享
-        </Button>
+        <h2 class="text-lg font-medium">您还没有创建任何分享</h2>
+        <p class="mt-2 text-muted-foreground">上传 JSON 文件并创建分享链接</p>
+        <Button class="mt-4" @click="router.push('/')"> 创建分享 </Button>
       </div>
 
       <div v-else class="border rounded-lg">
@@ -104,9 +109,7 @@ function formatExpiryDate(expiresAt: string | null) {
               <TableHead>文件名</TableHead>
               <TableHead>创建时间</TableHead>
               <TableHead>有效期至</TableHead>
-              <TableHead class="text-right">
-                操作
-              </TableHead>
+              <TableHead class="text-right"> 操作 </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -126,7 +129,9 @@ function formatExpiryDate(expiresAt: string | null) {
                     <ExternalLink class="w-4 h-4" />
                     <span class="sr-only">查看</span>
                   </Button>
-                  <AlertDialog :open="shareToDelete === share.id" @update:open="!$event && (shareToDelete = null)">
+                  <AlertDialog
+                    :open="shareToDelete === share.id"
+                    @update:open="!$event && (shareToDelete = null)">
                     <AlertDialogTrigger as-child>
                       <Button variant="ghost" size="icon" @click="shareToDelete = share.id">
                         <Trash2 class="w-4 h-4" />

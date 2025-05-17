@@ -1,10 +1,10 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { FilesController } from './files.controller';
-import { FilesService } from './files.service';
-import { JsonFile } from '../../entities/json-file.entity';
-import { UsersModule } from '../users/users.module';
-import { MulterModule } from '@nestjs/platform-express';
+import { Module } from '@nestjs/common'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { FilesController } from './files.controller'
+import { FilesService } from './files.service'
+import { JsonFile } from '../../entities/json-file.entity'
+import { UsersModule } from '../users/users.module'
+import { MulterModule } from '@nestjs/platform-express'
 
 @Module({
   imports: [

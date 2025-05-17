@@ -1,44 +1,44 @@
-import { applyDecorators, Type } from '@nestjs/common';
-import { ApiExtraModels, ApiOkResponse, ApiProperty, getSchemaPath } from '@nestjs/swagger';
+import { applyDecorators, Type } from '@nestjs/common'
+import { ApiExtraModels, ApiOkResponse, ApiProperty, getSchemaPath } from '@nestjs/swagger'
 
 export class ResponseDto<T> {
-  readonly data: T;
+  readonly data: T
 
   @ApiProperty()
-  readonly code: number;
+  readonly code: number
 
   @ApiProperty()
-  readonly message: string;
+  readonly message: string
 
   constructor(code: number, data?: any, message = 'success') {
-    this.code = code;
-    this.data = data;
-    this.message = message;
+    this.code = code
+    this.data = data
+    this.message = message
   }
 
   static success(data?: any) {
-    return new ResponseDto(200, data);
+    return new ResponseDto(200, data)
   }
 }
 
 export class Pagination {
   @ApiProperty()
-  total: number;
+  total: number
 
   @ApiProperty()
-  page: number;
+  page: number
 
   @ApiProperty()
-  size: number;
+  size: number
 }
 
 export class PaginatedResponseDto<T> {
   // @ApiProperty({ type: 'array', items: { $ref: getSchemaPath('T') } })
   @ApiProperty()
-  list: Array<T>;
+  list: Array<T>
 
   @ApiProperty()
-  pagination: Pagination;
+  pagination: Pagination
 }
 
 export const ApiResponse = <DataDto extends Type<unknown>, WrapperDataDto extends Type<unknown>>(
@@ -62,9 +62,10 @@ export const ApiResponse = <DataDto extends Type<unknown>, WrapperDataDto extend
         ],
       },
     }),
-  );
+  )
 
-export const ApiOkResponseData = <DataDto extends Type<unknown>>(dataDto: DataDto) => ApiResponse(dataDto, ResponseDto);
+export const ApiOkResponseData = <DataDto extends Type<unknown>>(dataDto: DataDto) =>
+  ApiResponse(dataDto, ResponseDto)
 
 export const ApiOkResponsePaginated = <DataDto extends Type<unknown>>(dataDto: DataDto) =>
-  ApiResponse(dataDto, PaginatedResponseDto);
+  ApiResponse(dataDto, PaginatedResponseDto)

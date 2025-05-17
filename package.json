@@ -4,22 +4,50 @@
   "description": "share json",
   "private": true,
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "postinstall": "npx simple-git-hooks",
     "client:dev": "pnpm -F client dev",
     "client:build": "pnpm -F client build",
     "server:dev": "pnpm -F server dev",
     "server:build": "pnpm -F server build",
     "server:start": "pnpm -F server start:prod",
     "server:test": "pnpm -F server test",
-    "mysql:dev": "NODE_ENV=development docker-compose up -d db",
-    "mysql:prod": "NODE_ENV=production docker-compose up -d db",
-    "mysql:stop": "docker-compose stop db",
-    "docker:up": "NODE_ENV=production docker-compose up -d",
-    "docker:down": "docker-compose down"
+    "server:test:cov": "pnpm -F server test:cov",
+    "mysql:dev": "docker-compose -f docker-compose.dev.yml up -d",
+    "mysql:stop": "docker-compose -f docker-compose.dev.yml stop",
+    "docker:up": "docker-compose up -d",
+    "docker:stop": "docker-compose stop",
+    "docker:down": "docker-compose down",
+    "format": "prettier --write \"**/*.{js,ts,json,jsx,tsx,vue,md}\"",
+    "lint": "eslint \"{client,server}/**/*.{js,ts,jsx,tsx,vue}\" --fix"
   },
   "workspaces": [
     "client",
     "server"
   ],
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "@typescript-eslint/eslint-plugin": "^7.11.0",
+    "@typescript-eslint/parser": "^7.11.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.2",
+    "eslint-plugin-vue": "^9.24.0",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.4.2",
+    "simple-git-hooks": "^2.11.1",
+    "typescript": "^5.5.4"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx lint-staged"
+  },
+  "lint-staged": {
+    "{client,server}/**/*.{js,ts,jsx,tsx,vue}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{md,json,yaml,yml}": "prettier --write"
+  },
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"

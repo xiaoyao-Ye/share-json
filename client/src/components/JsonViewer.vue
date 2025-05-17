@@ -16,7 +16,7 @@ const isVirtual = ref<boolean>(true) // 启用虚拟滚动
 const key = ref<number>(0) // 用于强制重新渲染组件
 
 // 根据当前主题计算样式类
-const themeClass = computed(() => isDark.value ? 'json-viewer-dark' : 'json-viewer-light')
+const themeClass = computed(() => (isDark.value ? 'json-viewer-dark' : 'json-viewer-light'))
 
 function expandAll() {
   expandDepth.value = Infinity
@@ -57,8 +57,7 @@ function collapseAll() {
         :item-height="24"
         selectable-type="multiple"
         class="json-viewer"
-        :class="themeClass"
-      />
+        :class="themeClass" />
     </div>
   </div>
 </template>
@@ -69,7 +68,9 @@ function collapseAll() {
 }
 
 .json-viewer :deep(.vjs-tree) {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
   font-size: 0.875rem;
   line-height: 1.25rem;
 }

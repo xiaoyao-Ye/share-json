@@ -1,14 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Share } from '../../entities/share.entity';
-import { CreateShareDto, ShareResponseDto } from './dto/create-share.dto';
-import { FilesService } from '../files/files.service';
-import { UsersService } from '../users/users.service';
-import { v4 as uuidv4 } from 'uuid';
-import { nanoid } from 'nanoid';
-import { ApiException } from '../../common/exceptions/api.exception';
-import * as fs from 'fs';
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Repository } from 'typeorm'
+import { Share } from '../../entities/share.entity'
+import { CreateShareDto, ShareResponseDto } from './dto/create-share.dto'
+import { FilesService } from '../files/files.service'
+import { UsersService } from '../users/users.service'
+import { v4 as uuidv4 } from 'uuid'
+import { nanoid } from 'nanoid'
+import { ApiException } from '../../common/exceptions/api.exception'
+import * as fs from 'fs'
 
 @Injectable()
 export class SharesService {
@@ -26,17 +26,17 @@ export class SharesService {
    * @returns 分享信息
    */
   async createShare(uuid: string, createShareDto: CreateShareDto): Promise<ShareResponseDto> {
-    const user = await this.usersService.getOrCreateUser(uuid);
-    const jsonFile = await this.filesService.findById(createShareDto.fileId);
+    const user = await this.usersService.getOrCreateUser(uuid)
+    const jsonFile = await this.filesService.findById(createShareDto.fileId)
 
     // 计算过期时间
-    let expiresAt: Date | null = null;
+    let expiresAt: Date | null = null
     if (createShareDto.expiryType === 'day') {
-      expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 1);
+      expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + 1)
     } else if (createShareDto.expiryType === 'week') {
-      expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7);
+      expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + 7)
     }
 
     // 创建分享记录
@@ -47,9 +47,9 @@ export class SharesService {
       jsonFileId: jsonFile.id,
       expiresAt,
       status: 1,
-    });
+    })
 
-    const savedShare = await this.sharesRepository.save(share);
+    const savedShare = await this.sharesRepository.save(share)
 
     return {
       id: savedShare.id,
@@ -58,7 +58,7 @@ export class SharesService {
       expiresAt: savedShare.expiresAt,
       status: savedShare.status,
       createdAt: savedShare.createdAt,
-    };
+    }
   }
 
   /**
@@ -67,22 +67,22 @@ export class SharesService {
    * @returns 分享列表
    */
   async findUserShares(uuid: string): Promise<ShareResponseDto[]> {
-    const user = await this.usersService.getOrCreateUser(uuid);
+    const user = await this.usersService.getOrCreateUser(uuid)
 
     const shares = await this.sharesRepository.find({
       where: { userId: user.id, status: 1 },
       relations: ['jsonFile'],
       order: { createdAt: 'DESC' },
-    });
+    })
 
-    return shares.map(share => ({
+    return shares.map((share) => ({
       id: share.id,
       shareCode: share.shareCode,
       fileName: share.jsonFile.fileName,
       expiresAt: share.expiresAt,
       status: share.status,
       createdAt: share.createdAt,
-    }));
+    }))
   }
 
   /**
@@ -91,19 +91,19 @@ export class SharesService {
    * @param shareId 分享ID
    */
   async deleteShare(uuid: string, shareId: string): Promise<void> {
-    const user = await this.usersService.getOrCreateUser(uuid);
+    const user = await this.usersService.getOrCreateUser(uuid)
 
     const share = await this.sharesRepository.findOne({
       where: { id: shareId },
-    });
+    })
 
-    if (!share) throw new ApiException('分享不存在', 404);
+    if (!share) throw new ApiException('分享不存在', 404)
 
-    if (share.userId !== user.id) throw new ApiException('无权删除此分享', 403);
+    if (share.userId !== user.id) throw new ApiException('无权删除此分享', 403)
 
     // 软删除，将状态设为0
-    share.status = 0;
-    await this.sharesRepository.save(share);
+    share.status = 0
+    await this.sharesRepository.save(share)
   }
 
   /**
@@ -115,15 +115,15 @@ export class SharesService {
     const share = await this.sharesRepository.findOne({
       where: { shareCode, status: 1 },
       relations: ['jsonFile'],
-    });
+    })
 
-    if (!share) throw new ApiException('分享不存在或已失效', 404);
+    if (!share) throw new ApiException('分享不存在或已失效', 404)
 
     if (share.expiresAt && new Date() > new Date(share.expiresAt)) {
-      throw new ApiException('分享已过期', 400);
+      throw new ApiException('分享已过期', 400)
     }
 
-    return share;
+    return share
   }
 
   /**
@@ -132,8 +132,8 @@ export class SharesService {
    * @returns JSON流
    */
   async getJsonContentByShareCode(shareCode: string): Promise<fs.ReadStream> {
-    const share = await this.findByShareCode(shareCode);
-    return this.filesService.getFileContentStream(share.jsonFileId);
+    const share = await this.findByShareCode(shareCode)
+    return this.filesService.getFileContentStream(share.jsonFileId)
   }
 
   /**
@@ -141,12 +141,14 @@ export class SharesService {
    * @param shareCode 分享码
    * @returns 文件流和文件名
    */
-  async getFileStreamByShareCode(shareCode: string): Promise<{ stream: fs.ReadStream; fileName: string }> {
-    const share = await this.findByShareCode(shareCode);
-    const stream = await this.filesService.getFileBufferStream(share.jsonFileId);
+  async getFileStreamByShareCode(
+    shareCode: string,
+  ): Promise<{ stream: fs.ReadStream; fileName: string }> {
+    const share = await this.findByShareCode(shareCode)
+    const stream = await this.filesService.getFileBufferStream(share.jsonFileId)
     return {
       stream,
       fileName: share.jsonFile.fileName,
-    };
+    }
   }
 }

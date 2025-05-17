@@ -1,11 +1,11 @@
-import { Controller, Post, UseInterceptors, UploadedFile, Headers } from '@nestjs/common';
-import { FilesService } from './files.service';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiConsumes, ApiHeader, ApiBody } from '@nestjs/swagger';
-import { UsersService } from '../users/users.service';
-import { UploadFileResponseDto } from './dto/upload-file.dto';
-import { Express } from 'express';
-import { ApiException } from '../../common/exceptions/api.exception';
+import { Controller, Post, UseInterceptors, UploadedFile, Headers } from '@nestjs/common'
+import { FilesService } from './files.service'
+import { FileInterceptor } from '@nestjs/platform-express'
+import { ApiTags, ApiOperation, ApiConsumes, ApiHeader, ApiBody } from '@nestjs/swagger'
+import { UsersService } from '../users/users.service'
+import { UploadFileResponseDto } from './dto/upload-file.dto'
+import { Express } from 'express'
+import { ApiException } from '../../common/exceptions/api.exception'
 
 @ApiTags('文件')
 @Controller('files')
@@ -40,19 +40,19 @@ export class FilesController {
     @UploadedFile() file: Express.Multer.File,
     @Headers('X-User-ID') uuid: string,
   ): Promise<UploadFileResponseDto> {
-    if (!uuid) throw new ApiException('未提供用户标识', 400);
+    if (!uuid) throw new ApiException('未提供用户标识', 400)
 
     // 确保用户存在
-    await this.usersService.getOrCreateUser(uuid);
+    await this.usersService.getOrCreateUser(uuid)
 
     // 上传文件
-    const jsonFile = await this.filesService.uploadJsonFile(file);
+    const jsonFile = await this.filesService.uploadJsonFile(file)
 
     return {
       id: jsonFile.id,
       fileName: jsonFile.fileName,
       fileSize: jsonFile.fileSize,
       uploadedAt: jsonFile.createdAt,
-    };
+    }
   }
 }

@@ -16,15 +16,13 @@ import { Button } from './ui/button'
             <router-link
               to="/"
               class="flex items-center text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
-              :class="{ 'text-foreground': $route.path === '/' }"
-            >
+              :class="{ 'text-foreground': $route.path === '/' }">
               首页
             </router-link>
             <router-link
               to="/my-shares"
               class="flex items-center text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
-              :class="{ 'text-foreground': $route.path === '/my-shares' }"
-            >
+              :class="{ 'text-foreground': $route.path === '/my-shares' }">
               我的分享
             </router-link>
           </nav>
