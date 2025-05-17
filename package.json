@@ -2,6 +2,7 @@
   "name": "share",
   "version": "1.0.0",
   "description": "share json",
+  "packageManager": "pnpm@10.10.0",
   "private": true,
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -13,7 +14,7 @@
     "server:start": "pnpm -F server start:prod",
     "server:test": "pnpm -F server test",
     "server:test:cov": "pnpm -F server test:cov",
-    "mysql:dev": "docker-compose -f docker-compose.dev.yml up -d",
+    "mysql:dev": "docker-compose -f docker-compose.dev.yml up db -d",
     "mysql:stop": "docker-compose -f docker-compose.dev.yml stop",
     "docker:up": "docker-compose up -d",
     "docker:stop": "docker-compose stop",
