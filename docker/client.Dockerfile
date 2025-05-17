@@ -23,8 +23,8 @@ FROM nginx:stable-alpine
 # 从构建阶段复制构建产物到 nginx 目录
 COPY --from=builder /app/client/dist /usr/share/nginx/html
 
-# 复制 nginx 配置文件（如果需要）
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+# 复制 nginx 配置文件
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
