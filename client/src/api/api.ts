@@ -29,6 +29,18 @@ export interface JsonContent {
   [key: string]: any
 }
 
+// 文件验证接口
+export interface VerifyFileRequest {
+  fileHash: string
+  fileName?: string
+  fileSize?: number
+}
+
+export interface VerifyFileResponse {
+  exists: boolean
+  fileId?: string
+}
+
 // Worker 回调类型定义
 export interface WorkerProgressCallback {
   (currentSize: number, chunk: string): void
@@ -43,6 +55,13 @@ export interface WorkerErrorCallback {
 }
 
 // API函数
+
+/**
+ * 验证文件是否存在
+ */
+export async function verifyFileExists(data: VerifyFileRequest): Promise<VerifyFileResponse> {
+  return apiClient.post('/files/verify', data)
+}
 
 /**
  * 上传JSON文件

@@ -2,7 +2,7 @@
 import type { ExpiryType } from '~/api/api'
 import { FileUp, Upload as UploadIcon } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
-import { createShare, uploadJsonFile } from '~/api/api'
+import { createShare, uploadJsonFile, verifyFileExists } from '~/api/api'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Button } from '~/components/ui/button'
 import {
@@ -15,11 +15,17 @@ import {
 } from '~/components/ui/card'
 import { Label } from '~/components/ui/label'
 
+interface FileWithHash extends File {
+  fileHash?: string
+}
+
 const router = useRouter()
-const file = ref<File | null>(null)
+const file = ref<FileWithHash | null>(null)
+const fileHash = ref<string | null>(null)
 const expiration = ref<ExpiryType>('day')
 const isDragging = ref(false)
 const isUploading = ref(false)
+const isHashing = ref(false)
 const error = ref<string | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
@@ -67,10 +73,47 @@ function handleFileInputChange(e: Event) {
   }
 }
 
-function handleFileSelect(selectedFile: File) {
+// 计算文件哈希
+async function calculateFileHash(fileToHash: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    isHashing.value = true
+
+    try {
+      // 创建Web Worker计算哈希
+      const worker = new Worker(new URL('../workers/hash.worker.ts', import.meta.url), {
+        type: 'module',
+      })
+
+      worker.onmessage = (e) => {
+        isHashing.value = false
+        if (e.data.success) {
+          resolve(e.data.hash)
+        } else {
+          reject(new Error(e.data.error))
+        }
+        worker.terminate()
+      }
+
+      worker.onerror = (err) => {
+        isHashing.value = false
+        reject(new Error('计算哈希失败: ' + err.message))
+        worker.terminate()
+      }
+
+      // 发送文件到Worker进行处理
+      worker.postMessage(fileToHash)
+    } catch (err) {
+      isHashing.value = false
+      reject(err)
+    }
+  })
+}
+
+async function handleFileSelect(selectedFile: File) {
   if (!selectedFile.name.endsWith('.json')) {
     error.value = '请上传 JSON 文件'
     file.value = null
+    fileHash.value = null
     return
   }
 
@@ -79,11 +122,13 @@ function handleFileSelect(selectedFile: File) {
   if (selectedFile.size > maxFileSize) {
     error.value = `文件大小不能超过20MB，当前文件大小：${(selectedFile.size / (1024 * 1024)).toFixed(2)}MB`
     file.value = null
+    fileHash.value = null
     return
   }
 
   error.value = null
-  file.value = selectedFile
+  file.value = selectedFile as FileWithHash
+  fileHash.value = await calculateFileHash(selectedFile)
 }
 
 async function handleUpload() {
@@ -93,17 +138,11 @@ async function handleUpload() {
     isUploading.value = true
     error.value = null
 
-    const formData = new FormData()
-    formData.append('file', file.value)
-
-    // 上传文件
-    const shareFile = await uploadJsonFile(formData)
+    const fileId = await verifyFileOrUpload()
 
     // 创建分享
-    const shareData = {
-      fileId: shareFile.id,
-      expiryType: expiration.value,
-    }
+    const shareData = { fileId, expiryType: expiration.value }
+
     const share = await createShare(shareData)
 
     // 跳转到我的分享页面
@@ -114,6 +153,26 @@ async function handleUpload() {
   } finally {
     isUploading.value = false
   }
+}
+
+async function verifyFileOrUpload() {
+  const verifyResult = await verifyFileExists({
+    fileHash: fileHash.value!,
+    fileName: file.value!.name,
+    fileSize: file.value!.size,
+  })
+  return verifyResult.exists ? verifyResult.fileId! : await uploadFile()
+}
+
+// 上传文件并返回文件ID
+async function uploadFile(): Promise<string> {
+  const formData = new FormData()
+  formData.append('file', file.value!)
+  formData.append('fileHash', fileHash.value!)
+
+  // 上传文件
+  const shareFile = await uploadJsonFile(formData)
+  return shareFile.id
 }
 </script>
 
@@ -129,12 +188,23 @@ async function handleUpload() {
       </Alert>
 
       <div
-        class="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed rounded-lg"
+        class="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed rounded-lg relative"
         :class="isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'"
         @dragover="handleDragOver"
         @dragleave="handleDragLeave"
         @drop="handleDrop"
         @click="fileInputRef?.click()">
+        <!-- 哈希计算遮罩 -->
+        <div
+          v-if="isHashing"
+          class="absolute inset-0 flex items-center justify-center bg-background/80 z-10 rounded-lg">
+          <div class="flex flex-col items-center">
+            <div
+              class="w-8 h-8 border-2 rounded-full border-primary animate-spin border-t-transparent mb-2"></div>
+            <p class="text-sm">计算文件指纹中...</p>
+          </div>
+        </div>
+
         <div class="p-3 mb-4 rounded-full bg-primary/10">
           <FileUp class="w-6 h-6 text-primary" />
         </div>
@@ -160,7 +230,7 @@ async function handleUpload() {
               v-for="option in expirationOptions"
               :key="option.value"
               :variant="expiration === option.value ? 'default' : 'outline'"
-              :disabled="isUploading || !file"
+              :disabled="isUploading || isHashing || !file"
               class="flex-1"
               @click="expiration = option.value">
               {{ option.label }}
@@ -170,7 +240,7 @@ async function handleUpload() {
       </div>
     </CardContent>
     <CardFooter>
-      <Button class="w-full" :disabled="isUploading || !file" @click="handleUpload">
+      <Button class="w-full" :disabled="isUploading || isHashing || !file" @click="handleUpload">
         <template v-if="isUploading">
           <div
             class="w-4 h-4 mr-2 border-2 rounded-full border-background animate-spin border-t-transparent" />

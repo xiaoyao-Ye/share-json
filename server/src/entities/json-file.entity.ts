@@ -14,6 +14,9 @@ export class JsonFile {
   @Column({ name: 'file_size', type: 'int' })
   fileSize: number
 
+  @Column({ name: 'file_hash', type: 'varchar', length: 64, nullable: true })
+  fileHash: string
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date
 

@@ -4,7 +4,7 @@
  */
 
 // 处理来自主线程的消息
-globalThis.onmessage = async (event) => {
+self.onmessage = async (event) => {
   const { url, userId } = event.data
 
   try {
@@ -19,7 +19,7 @@ globalThis.onmessage = async (event) => {
 
     if (!response.ok) {
       const errorText = await response.text()
-      globalThis.postMessage({
+      self.postMessage({
         type: 'error',
         error: `请求失败: ${response.status} ${response.statusText}`,
         details: errorText,
@@ -28,7 +28,7 @@ globalThis.onmessage = async (event) => {
     }
 
     // 通知主线程开始处理
-    globalThis.postMessage({ type: 'start' })
+    self.postMessage({ type: 'start' })
 
     // 获取ReadableStream
     const reader = response.body?.getReader()
@@ -46,7 +46,7 @@ globalThis.onmessage = async (event) => {
       jsonText += chunk
 
       // 定期向主线程发送进度更新
-      globalThis.postMessage({
+      self.postMessage({
         type: 'progress',
         currentSize: jsonText.length,
         chunk,
@@ -61,14 +61,14 @@ globalThis.onmessage = async (event) => {
       const jsonData = JSON.parse(jsonText)
 
       // 返回结果给主线程
-      globalThis.postMessage({
+      self.postMessage({
         type: 'complete',
         data: jsonData,
         size: jsonText.length,
       })
     } catch (parseError: unknown) {
       const errorMessage = parseError instanceof Error ? parseError.message : '未知解析错误'
-      globalThis.postMessage({
+      self.postMessage({
         type: 'error',
         error: '解析JSON失败',
         details: errorMessage,
@@ -76,7 +76,7 @@ globalThis.onmessage = async (event) => {
     }
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : '未知错误'
-    globalThis.postMessage({
+    self.postMessage({
       type: 'error',
       error: '处理JSON流时出错',
       details: errorMessage,

@@ -40,11 +40,21 @@ export class FilesService {
   }
 
   /**
+   * 根据哈希值查找文件
+   * @param fileHash 文件哈希值
+   * @returns 文件实体 或 null
+   */
+  async findByHash(fileHash: string): Promise<JsonFile | null> {
+    return this.jsonFilesRepository.findOne({ where: { fileHash } })
+  }
+
+  /**
    * 上传JSON文件
    * @param file 文件对象
+   * @param fileHash 文件哈希值（可选，前端预计算）
    * @returns 保存的文件实体
    */
-  async uploadJsonFile(file: Express.Multer.File): Promise<JsonFile> {
+  async uploadJsonFile(file: Express.Multer.File, fileHash?: string): Promise<JsonFile> {
     if (!file) {
       throw new ApiException('未提供文件', 400)
     }
@@ -75,6 +85,7 @@ export class FilesService {
         fileName,
         filePath,
         fileSize,
+        fileHash,
       })
 
       return this.jsonFilesRepository.save(jsonFile)
