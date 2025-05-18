@@ -76,6 +76,15 @@ function handleFileSelect(selectedFile: File) {
     return
   }
 
+  // 添加文件大小检查
+  const maxFileSize = 20 * 1024 * 1024 // 20MB
+  if (selectedFile.size > maxFileSize) {
+    error.value = `文件大小不能超过20MB，当前文件大小：${(selectedFile.size / (1024 * 1024)).toFixed(2)}MB`
+    file.value = null
+    jsonContent.value = null
+    return
+  }
+
   error.value = null
   file.value = selectedFile
 
