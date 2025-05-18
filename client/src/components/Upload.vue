@@ -17,7 +17,6 @@ import { Label } from '~/components/ui/label'
 
 const router = useRouter()
 const file = ref<File | null>(null)
-const jsonContent = ref<any>(null)
 const expiration = ref<ExpiryType>('day')
 const isDragging = ref(false)
 const isUploading = ref(false)
@@ -72,7 +71,6 @@ function handleFileSelect(selectedFile: File) {
   if (!selectedFile.name.endsWith('.json')) {
     error.value = '请上传 JSON 文件'
     file.value = null
-    jsonContent.value = null
     return
   }
 
@@ -81,30 +79,15 @@ function handleFileSelect(selectedFile: File) {
   if (selectedFile.size > maxFileSize) {
     error.value = `文件大小不能超过20MB，当前文件大小：${(selectedFile.size / (1024 * 1024)).toFixed(2)}MB`
     file.value = null
-    jsonContent.value = null
     return
   }
 
   error.value = null
   file.value = selectedFile
-
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    try {
-      const content = JSON.parse(e.target?.result as string)
-      jsonContent.value = content
-    } catch (err) {
-      console.error('Error parsing JSON:', err)
-      error.value = '无效的 JSON 文件'
-      file.value = null
-      jsonContent.value = null
-    }
-  }
-  reader.readAsText(selectedFile)
 }
 
 async function handleUpload() {
-  if (!file.value || !jsonContent.value) return
+  if (!file.value) return
 
   try {
     isUploading.value = true
